@@ -67,16 +67,32 @@ public:
 				return (*it).dist;
 			}
 		}
-		return -1;
+		return 4;
 	}
 
 	// 计算点p到所有关键词是否可达
 	bool materialized(int p,vector<int> query){
 		if(this->distMap[p].size()!=query.size()){	// 3跳内不可达
 			return false;
-		}else{
-			return true;
 		}
+		for(vector<keyDist>::iterator it=this->distMap[p].begin();it<this->distMap[p].end();it++){
+			if((*it).dist==4){
+				return false;
+			}
+		}
+		return true;
+	}
+
+	// 计算点p到关键词组有多少可达性未知的路径,并返回其中一个可达性未知的关键词
+	int unkownMaterializedNum(int p,vector<int> query，int &key){
+		int i=0;
+		for(vector<keyDist>::iterator it=this->distMap[p].begin();it<this->distMap[p].end();it++){
+			if((*it).dist==4){
+				key=(*it).key;
+				i++;
+			}
+		}
+		return i;
 	}
 
 	// 获取点p到所有关键词的距离
@@ -93,7 +109,7 @@ public:
 		for (vector<int>::iterator it = query.begin(); it < query.end(); it++) {
 			// 查看字典distMap中是否存储了点p到关键词*it的距离
 			d=this->getDistByMap(p,*it);
-			if (d < 0) {	// 字典distMap没有点p到关键词*it的距离，调用graph.minDist计算距离
+			if (d == 4) {	// 字典distMap没有点p到关键词*it的距离，调用graph.minDist计算距离
 				d = graph.minDist(p, *it) - 1;	// graph中关键词被转化为结点，所以距离要减去1
 				if (d < 0) {	// 点p到关键词*it不可达，返回一个空数组
 					cout<<"error: "<<p<<" cannot reach find keyword "<< *it <<endl;
@@ -123,47 +139,46 @@ public:
 
 		// =================================================================================================== //
 		// 做法1：将所有不可达的结点成为独立组
-		for (int i = 0; i < CandT.size(); i++) {
-			vector<int> tmpRow = dists[i];
-			string score;
-			for (vector<int>::iterator it = tmpRow.begin(); it < tmpRow.end(); it++) {
-				if (*it == -1) {	// 3跳内对该关键词不可达
-					// 将该语义地点独立分为一组
-					vector<int> tmp;
-					tmp.push_back(CandT[i]);
-					p.push_back(tmp);
-					score="";
-					break;
-				}
-				score += to_string(*it)+",";	
-			}
-			if(score.compare("")==0){	// 3跳内不可达的情况已记录，不参与下列分组环节
-				continue;
-			}
-			map<string, int>::iterator tempIter = indexT.find(score);
-			if (tempIter == indexT.end()) {
-				vector<int> tmp;
-				tmp.push_back(CandT[i]);
-				p.push_back(tmp);
-				indexT[score] = p.size() - 1;	// 记录此分组score在输出队列p中的位置
-			}
-			else 
-			{
-				p[(*tempIter).second].push_back(CandT[i]);
-			}
-		}
+		// 因为Cand中大部分的结点都是可达性未知的，分组过后组数会较大，前两步裁剪的过程中，对于可达性未知的结点无法做支配计算，最后需要计算距离的结点会很多，造成时间复杂度过大
+
+		// for (int i = 0; i < CandT.size(); i++) {
+		// 	vector<int> tmpRow = dists[i];
+		// 	string score;
+		// 	for (vector<int>::iterator it = tmpRow.begin(); it < tmpRow.end(); it++) {
+		// 		if (*it == -1) {	// 3跳内对该关键词不可达
+		// 			// 将该语义地点独立分为一组
+		// 			vector<int> tmp;
+		// 			tmp.push_back(CandT[i]);
+		// 			p.push_back(tmp);
+		// 			score="";
+		// 			break;
+		// 		}
+		// 		score += to_string(*it)+",";	
+		// 	}
+		// 	if(score.compare("")==0){	// 3跳内不可达的情况已记录，不参与下列分组环节
+		// 		continue;
+		// 	}
+		// 	map<string, int>::iterator tempIter = indexT.find(score);
+		// 	if (tempIter == indexT.end()) {
+		// 		vector<int> tmp;
+		// 		tmp.push_back(CandT[i]);
+		// 		p.push_back(tmp);
+		// 		indexT[score] = p.size() - 1;	// 记录此分组score在输出队列p中的位置
+		// 	}
+		// 	else 
+		// 	{
+		// 		p[(*tempIter).second].push_back(CandT[i]);
+		// 	}
+		// }
+
 		// =================================================================================================== //
 		// 做法2：将不可达的结点的距离视为4，这样可将不可达的结点进行分组
-		/*
+		
 		for (int i = 0; i < CandT.size(); i++) {
 			vector<int> tmpRow = dists[i];
 			string score;
 			for (vector<int>::iterator it = tmpRow.begin(); it < tmpRow.end(); it++) {
-				if (*it == -1) {	// 3跳内对该关键词不可达
-					score += "4,";	
-				}else{
-					score += to_string(*it)+",";	
-				}
+				score += to_string(*it)+",";
 			}
 			// 根据距离分组
 			map<string, int>::iterator tempIter = indexT.find(score);
@@ -178,7 +193,7 @@ public:
 				p[(*tempIter).second].push_back(CandT[i]);
 			}
 		}
-		*/
+		
 		// =================================================================================================== //
 		return p;
 	}
@@ -206,6 +221,24 @@ public:
 		}else{	// 两结点到所有关键词的距离都相等，不可支配
 			return false;
 		}
+	}
+
+	// 严格支配算法，只有pi中的距离均小于pj中的距离时才视为被支配
+	bool strictControl(int pi,int pj) {
+		// 执行此算法时，一定不存在不可达或可达性未知的结点
+		vector<keyDist> rowi=this->distMap[pi];
+		vector<keyDist> rowj=this->distMap[pj];
+		// 如果语义地点的可达性未知，则返回true，不执行裁剪
+		if(rowi.size()!=this->queryNum || rowj.size()!=this->queryNum){
+			return false;
+		}
+		// 如果不可支配，返回false
+		for(int i=0;i<rowi.size();i++){
+			if(rowi[i].dist>=rowj[i].dist){
+				return false;	//不可支配
+			}
+		}
+		return true;
 	}
 
 	// P中两两之间进行支配比较，并执行裁剪操作
@@ -262,7 +295,6 @@ public:
 			}
 		}
 		cout<<11<<endl;
-		// this->sortDistMap();
 
 		// Update p to / in Cand
 		set<int> C;
@@ -337,6 +369,14 @@ public:
 				Leveldb ldb;
 				vector<int> vp=ldb.SPGet(*it_i,SPFileName);	// Vp← Sp.Get(p);
 				for (vector<int>::iterator it_v = vp.begin(); it_v < vp.end(); it_v++) {
+					// #########################################################################
+					/*
+						三种情况：
+						1.计算所有的值
+						2.不计算值
+						3.不做第二步裁剪
+					*/
+					// ##########################################################################
 					ComputeDist(*it_v,query);
 					if (materialized(*it_v,query)){
 						if(control(*it_v, *it_i)) {	// if ∃pj∈ Vp(Tpj≺ Tp) then
@@ -359,106 +399,161 @@ public:
 		cout<<15<<endl;	
 		// ========================================================================================================== //
 		// 方法1：对P中的点先求可达性和距离，再进行两两支配关系比较
-		vector<int> PUnMaterialized;
-		query_list.clear();
-		for (vector<vector<int>>::iterator it = P.begin(); it < P.end(); it++) {	// for each partition Pi∈ P do
-			if (!materialized((*it).front(),query)){	// 可达性未知
-				for (vector<int>::iterator wIter = query.begin(); wIter < query.end(); wIter++) {
-					queryNode temp((*it).front(),*wIter);
-					query_list.push_back(temp);
-				}
-				PUnMaterialized.push_back((*it).front());
-			}
-		}
-		res = judgeReachable(Util::countFileRows("./data.txt"), indexFile, query_list);
-		cout<<16<<endl;	
-		vector<int> PUnReachable;
-		reachTemp=0;
-		for (int i = 0,k = 0; i < res.size(); i++ ) { 
-			reachTemp += res[i];
-			if (i == (k + 1)*query.size() - 1) {
-				if (reachTemp != query.size()) {	// unreachable
-					PUnReachable.push_back(PUnMaterialized[k]);
-				}
-				k++;
-				reachTemp = 0;
-			}
-		}
-		// delete the node p which cannot reach q.ψ
-		for (vector<vector<int>>::iterator it = P.begin(); it < P.end(); ) {
-			vector<int>::iterator itFind = find(PUnReachable.begin(), PUnReachable.end(), (*it).front());
-			if(itFind!=PUnReachable.end()){	// P UnReachable
-				it = P.erase(it);	// Pi is pruned and removed;
-			}else{
-				it++;
-			}
-		}
-		// Compute distance that node in Skyline
-		for (vector<vector<int>>::iterator it = P.begin(); it < P.end(); ) {
-			ComputeDist((*it).front(),query);	// ComputeDist(p, q.ψ);
-		}	// 距离计算完成，结果都存放在变量distMap中
-		cout<<17<<endl;	
-		this->sortDistMap();
-		cout<<18<<endl;	
+
+		// vector<int> PUnMaterialized;
+		// query_list.clear();
+		// for (vector<vector<int>>::iterator it = P.begin(); it < P.end(); it++) {	// for each partition Pi∈ P do
+		// 	if (!materialized((*it).front(),query)){	// 可达性未知
+		// 		for (vector<int>::iterator wIter = query.begin(); wIter < query.end(); wIter++) {
+		// 			queryNode temp((*it).front(),*wIter);
+		// 			query_list.push_back(temp);
+		// 		}
+		// 		PUnMaterialized.push_back((*it).front());
+		// 	}
+		// }
+		// res = judgeReachable(Util::countFileRows("./data.txt"), indexFile, query_list);
+		// cout<<16<<endl;	
+		// vector<int> PUnReachable;
+		// reachTemp=0;
+		// for (int i = 0,k = 0; i < res.size(); i++ ) { 
+		// 	reachTemp += res[i];
+		// 	if (i == (k + 1)*query.size() - 1) {
+		// 		if (reachTemp != query.size()) {	// unreachable
+		// 			PUnReachable.push_back(PUnMaterialized[k]);
+		// 		}
+		// 		k++;
+		// 		reachTemp = 0;
+		// 	}
+		// }
+		// // delete the node p which cannot reach q.ψ
+		// for (vector<vector<int>>::iterator it = P.begin(); it < P.end(); ) {
+		// 	vector<int>::iterator itFind = find(PUnReachable.begin(), PUnReachable.end(), (*it).front());
+		// 	if(itFind!=PUnReachable.end()){	// P UnReachable
+		// 		it = P.erase(it);	// Pi is pruned and removed;
+		// 	}else{
+		// 		it++;
+		// 	}
+		// }
+		// // Compute distance that node in Skyline
+		// for (vector<vector<int>>::iterator it = P.begin(); it < P.end(); ) {
+		// 	ComputeDist((*it).front(),query);	// ComputeDist(p, q.ψ);
+		// }	// 距离计算完成，结果都存放在变量distMap中
+		// cout<<17<<endl;	
+		// this->sortDistMap();
+		// cout<<18<<endl;	
+
 		// ========================================================================================================== //
-		// 方法2：按照论文上的方法，求可达性和距离 与 支配关系比较同时进行
-		/*
+		// 方法2：求可达性和距离 与 支配关系比较同时进行
+		
+		// for (vector<vector<int>>::iterator it = P.begin(); it < P.end(); ) {	// for each partition Pi∈ P do
+		// 	if(materialized((*it).front(),query){	// if p∗i is materialized then
+		// 		bool bflag=false;
+		// 		for (vector<vector<int>>::iterator it_inner = it+1; it_inner < P.end(); it_inner++) {
+		// 			// if ∃Pj∈ P (p∗j is materialized ∧ Tp∗j≺ Tp∗i) then
+		// 			if (materialized((*it_inner).front(),query)){
+		// 				if(control((*it_inner).front(),(*it).front())){
+		// 					it = P.erase(it);	// Pi is pruned and removed;
+		// 					t3++;
+		// 					bflag=true;
+		// 					break;
+		// 				}
+		// 			}
+		// 		}
+		// 		if(!bflag){
+		// 			it++;
+		// 		}
+		// 	}else{	// if p∗i is not materialized then
+		// 		vector<queryNode> query_list;
+		// 		for (vector<int>::iterator it_inner = (*it).begin(); it_inner < (*it).end(); it_inner++) {	// for each p ∈ Pido
+		// 			for (vector<int>::iterator wIter = query.begin(); wIter < query.end(); wIter++) {
+		// 				queryNode temp(*it_inner,*wIter);
+		// 				query_list.push_back(temp);	// query_list用于调用TL_LABEL算法判断可达性
+		// 			}
+		// 		}
+		// 		// query if two node reach each other by TL_Label
+		// 		char indexFile[64];
+		// 		strcpy(indexFile, "../index/p2p_scc");
+		// 		res = judgeReachable(Util::countFileRows("./data.txt"), indexFile, query_list);	// if p is reachable, return 1; else return 0
+
+		// 		// judge p in Skyline can reach all query keyword in q.Ψ
+		// 		vector<int> PUnReachable;
+		// 		int reachTemp=0;
+		// 		for (int i = 0,k = 0; i < res.size(); i++ ) { 
+		// 			reachTemp += res[i];
+		// 			if (i == (k + 1)*query.size() - 1) {
+		// 				if (reachTemp != query.size()) {	// unreachable
+		// 					PUnReachable.push_back((*it)[k]);
+		// 				}
+		// 				k++;
+		// 				reachTemp = 0;
+		// 			}
+		// 		}
+		// 		// delete the node p which cannot reach q.ψ
+		// 		for (vector<int>::iterator it_inner = (*it).begin(); it_inner < (*it).end(); it_inner++) {	// for each p ∈ Pido
+		// 			vector<int>::iterator itFind = find(PUnReachable.begin(), PUnReachable.end(), *it_inner);
+		// 			if(itFind!=PUnReachable.end()){	// P UnReachable
+		// 				it_inner = P.erase(it_inner);	// Pi is pruned and removed;
+		// 			}else{	// if ReachabilityTest(p, q.ψ) then
+		// 				ComputeDist(*it_inner,query);	// ComputeDist(p, q.ψ);
+		// 				it_inner++;
+		// 			}
+		// 		}	
+		// 	}	
+		// }
+		
+		// ========================================================================================================== //
+		// 方法3：先求支配关系，过滤掉不适合的组后，再计算可达性和距离
+		bool bflag=false;
+		int keyTmp;
 		for (vector<vector<int>>::iterator it = P.begin(); it < P.end(); ) {	// for each partition Pi∈ P do
-			if(materialized((*it).front(),query){	// if p∗i is materialized then
-				bool bflag=false;
-				for (vector<vector<int>>::iterator it_inner = it+1; it_inner < P.end(); it_inner++) {
-					// if ∃Pj∈ P (p∗j is materialized ∧ Tp∗j≺ Tp∗i) then
-					if (materialized((*it_inner).front(),query)){
-						if(control((*it_inner).front(),(*it).front())){
-							it = P.erase(it);	// Pi is pruned and removed;
-							t3++;
-							bflag=true;
-							break;
-						}
-					}
+			for (vector<vector<int>>::iterator it_inner = it+1; it_inner < P.end(); it_inner++) {
+				if(strictControl((*it).front(),(*it_inner).front())){
+					it = P.erase(it);	// Pi is pruned and removed;
+					t3++;
+					bflag=true;
+					break;
 				}
-				if(!bflag){
-					it++;
-				}
-			}else{	// if p∗i is not materialized then
+			}
+			if(bflag){	//	这一组被其他组支配，故删除这一组，不用计算可达性和距离
+				continue;
+			}
+			// 计算pi这一组的可达性和距离
+			if(materialized((*it).front(),query)){	//	可达性已知，不需要计算
+				continue;
+			}else if(unkownMaterializedNum((*it).front(),query,keyTmp)==1){	// 只有一个可达性未知的距离，求该距离的最小值即可
 				vector<queryNode> query_list;
 				for (vector<int>::iterator it_inner = (*it).begin(); it_inner < (*it).end(); it_inner++) {	// for each p ∈ Pido
-					for (vector<int>::iterator wIter = query.begin(); wIter < query.end(); wIter++) {
-						queryNode temp(*it_inner,*wIter);
-						query_list.push_back(temp);	// query_list用于调用TL_LABEL算法判断可达性
-					}
+					query_list.push_back(*it_inner,keyTmp);
 				}
+				
 				// query if two node reach each other by TL_Label
 				char indexFile[64];
 				strcpy(indexFile, "../index/p2p_scc");
 				res = judgeReachable(Util::countFileRows("./data.txt"), indexFile, query_list);	// if p is reachable, return 1; else return 0
 
-				// judge p in Skyline can reach all query keyword in q.Ψ
-				vector<int> PUnReachable;
-				int reachTemp=0;
-				for (int i = 0,k = 0; i < res.size(); i++ ) { 
-					reachTemp += res[i];
-					if (i == (k + 1)*query.size() - 1) {
-						if (reachTemp != query.size()) {	// unreachable
-							PUnReachable.push_back((*it)[k]);
-						}
-						k++;
-						reachTemp = 0;
+				// judge p in Pi which can reach  keyword keytmp
+				vector<int> distmp;
+				for(int i=0;i<res.size();i++){
+					if(res[i]==1){	//	可达则求距离
+						distmp.push_back(graph.minDist((*it).at(i),keyTmp) - 1);	// graph中关键词被转化为结点，所以距离要减去1
 					}
 				}
-				// delete the node p which cannot reach q.ψ
-				for (vector<int>::iterator it_inner = (*it).begin(); it_inner < (*it).end(); it_inner++) {	// for each p ∈ Pido
-					vector<int>::iterator itFind = find(PUnReachable.begin(), PUnReachable.end(), *it_inner);
-					if(itFind!=PUnReachable.end()){	// P UnReachable
-						it_inner = P.erase(it_inner);	// Pi is pruned and removed;
-					}else{	// if ReachabilityTest(p, q.ψ) then
-						ComputeDist(*it_inner,query);	// ComputeDist(p, q.ψ);
-						it_inner++;
+				int min=distmp.front();
+				for(vector<int>::iterator it_inner=distmp.begin();it_inner<distmp.end();it_inner++){	// 计算最小的距离
+					if(*it_inner<min){
+						min=*it_inner;
 					}
-				}	
-			}	
+				}
+				// #############################################################
+				(*it)
+			}else{
+
+			}
+			if(!bflag){
+				it++;
+			}
 		}
-		*/
+
 		// ========================================================================================================== //
 		DominanceCheck(P,t3);	// DominanceCheck(P);
 		cout<<19<<endl;	
