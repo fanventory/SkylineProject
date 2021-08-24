@@ -61,19 +61,19 @@ int main(int argc, char **argv) {
 	}
 	// 准备工作结束
 	
-	// Leveldb ldb;
-	// vector<KeyRow> queryRes= ldb.SLGet(query,SLFileName);	// 从SLdb中获取关键字对应的倒排索引组
-	// cout<<5<<endl;
-	// SPS sps;
-	// // 将倒排序列读入数据结构中
-	// sps.init(queryRes);	// 初始化
-	// cout<<6<<endl;
-	// clock_t startTime,endTime;	// 计时
-	// startTime = clock();//计时开始
-	// vector<int> Skyline=sps.SPS_calculate(query,SPFileName);	// 执行sps算法
-	// endTime = clock();//计时结束
-	// cout << "The run time is: " <<(double)(endTime - startTime) / CLOCKS_PER_SEC << "s" << endl;
-	// cout<<7<<endl;
-	// for_each(Skyline.begin(), Skyline.end(), show);	// 显示Skyline结果
-	// return 0;
+	Leveldb ldb;
+	vector<KeyRow> queryRes= ldb.SLGet(query,SLFileName);	// 从SLdb中获取关键字对应的倒排索引组
+	cout<<5<<endl;
+	SPS sps;
+	// 将倒排序列读入数据结构中
+	sps.init(queryRes);	// 初始化
+	cout<<6<<endl;
+	clock_t startTime,endTime;	// 计时
+	startTime = clock();//计时开始
+	vector<int> Skyline=sps.SPS_calculate(query,SPFileName);	// 执行sps算法
+	endTime = clock();//计时结束
+	cout << "The run time is: " <<(double)(endTime - startTime) / CLOCKS_PER_SEC << "s" << endl;
+	for_each(Skyline.begin(), Skyline.end(), show);	// 显示Skyline结果
+	cout<<endl<<7<<endl;
+	return 0;
 }

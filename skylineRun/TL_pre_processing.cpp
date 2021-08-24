@@ -485,7 +485,8 @@ void load(FILE *infile) {
 	int ret = fscanf(infile, "%d%d", &vertexN, &edgeN);
 	int m = 0, u, deg;
 	creatM();
-	memset(ind, 0, sizeof(int) * vertexN);
+	memset(ind, 0, sizeof(int) * vertexN);  
+	memset(outd, 0, sizeof(int) * vertexN);
 	start[0] = 0;
 	while (fscanf(infile, "%d%d", &u, &deg) == 2) {
 		start[u] = m;

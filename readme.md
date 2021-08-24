@@ -1,14 +1,14 @@
 生成倒排索引组
-进入pre_process目录
+进入pre_process目录：cd pre_process
 编译命令：g++ main.cpp libleveldb.a -lpthread -I ../../leveldb/include  -o pre_process
 执行命令：./pre_process
 
-进入pre_process目录
+进入pre_process目录:cd pre_process
 输出所有的倒排索引组
 编译命令：g++ duplicate.cpp libleveldb.a -lpthread -I ../../leveldb/include  -o outputIndex
 执行命令：./outputIndex
 
-进入skylineRun目录
+进入skylineRun目录:cd skylineRun
 运行SPS算法
 编译命令：g++ main.cpp libleveldb.a -lpthread -I ../../leveldb/include  -o sps
 执行命令：./sps 8187734 10043195 9052829 [-build]

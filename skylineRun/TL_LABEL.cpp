@@ -68,7 +68,10 @@ void getLabelName(char* tmp) {
 	label_name[tgraph] = '\0';
 }
 // queryNode -- int from ; int to ;
-vector<int> judgeReachable(int sccN, char *ind_filename, vector<queryNode> query_list) {
+vector<int> judgeReachable(char *dataFilename,char *ind_filename, vector<queryNode> query_list) {
+	int sccN;
+	FILE *infile = fopen(dataFilename, "r");
+	int ret = fscanf(infile, "%d", &sccN);
 	int queryNum = query_list.size();
 	vector<int> res;
 	res.resize(queryNum);

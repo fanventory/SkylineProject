@@ -9,17 +9,6 @@ private:
 	map<int, vector<keyDist>> distMap;	// 存储结点到关键词距离
 	int queryNum;	// 查询关键词的数量
 public:
-	// 构造函数
-	SPS(){}
-
-	// 析构函数
-	~SPS() {
-		for (vector<KeyRow>::iterator it = this->keyRows.begin(); it < this->keyRows.end(); it++) {
-			(*it).triples.~vector();
-		}
-		this->keyRows.~vector();
-	}
-
 	// 根据读取到的文本行，构造倒排索引数据结构
 	void init(vector<KeyRow> row) {
 		for (vector<KeyRow>::iterator it = row.begin(); it < row.end(); it++) {
@@ -322,7 +311,12 @@ public:
 		vector<Triple> list;
 		vector<queryNode> query_list;	//	用于记录结点到关键词可达性的队列
 		int t1=0,t2=0,t3=0,t4=0;	// 记录三次裁剪的计数器
+    	char indexFile[64];
+		strcpy(indexFile, "../index/p2p_scc");
+		char dataFile[64];
+		strcpy(dataFile, "./data.txt");
 		this->queryNum=query.size();
+
 
 		for (vector<int>::iterator it = query.begin(); it < query.end(); it++) {	// for each w[i] in q.Ψ
 			list.clear();		// 清空list
@@ -330,10 +324,8 @@ public:
 			if (list.size() != 0) {	// list!=0
 				// 将list中的结点加入字典distMap中，便于后续计算结点到关键字的距离
 				this->buildDistMap(list);
-				Triple entryTmp=list.back();	// Entry(p,d,B)<-list[i].RemoveEntry()
-				list.pop_back();
+				Triple entryTmp=list.front();	// Entry(p,d,B)<-list[i].RemoveEntry()
 				int min = entryTmp.distance;	// min<-d
-				this->distMap[entryTmp.node].push_back(keyDist(*it,min));	// 记录结点到关键词的距离
 				for (vector<Triple>::iterator it_inner = list.begin(); it_inner < list.end(); it_inner++) {	// repeat
 					this->distMap[(*it_inner).node].push_back(keyDist(*it, (*it_inner).distance));	// 记录结点到关键词的距离
 					if ((*it_inner).distance == min) {	// min==d
@@ -345,14 +337,14 @@ public:
 				}
 			}
 		}
-		cout<<11<<endl;
+		
 
 		// Update p to / in Cand
 		set<int> C;
 		// 求Skyline和Cand的差集
 		set_difference(Cand.begin(), Cand.end(), SkylineSet.begin(), SkylineSet.end(), insert_iterator<set<int>>(C, C.begin()));
 		Cand.swap(C);		// 此时Cand为去除Skyline的部分
-
+		
 		// judge p in Skyline if can reach all keyword limit 3 skip, if can, we define that p is materialized
 		vector<int> SkylineUnMaterialized;
 		for (set<int>::iterator sIter = SkylineSet.begin(); sIter != SkylineSet.end(); sIter++) {
@@ -367,9 +359,7 @@ public:
 		}
 		
 		// query if two node reach each other by TL_Label
-		char indexFile[64];
-		strcpy(indexFile, "../index/p2p_scc");
-		vector<int> res = judgeReachable(Util::countFileRows("./data.txt"), indexFile, query_list);	// if p is reachable, return 1; else return 0
+		vector<int> res = judgeReachable(dataFile, indexFile, query_list);	// if p is reachable, return 1; else return 0
 		cout<<12<<endl;	
 
 		// judge p in Skyline can reach all query keyword in q.Ψ
@@ -395,7 +385,6 @@ public:
 			ComputeDist(*sIter,query);	// ComputeDist(p, q.ψ);
 		}
 		cout<<13<<endl;	
-
 		// P ← Partition(Cand);
 		vector<vector<int>> P = Partition(Cand, query);	
 		cout<<14<<endl;	
@@ -570,6 +559,7 @@ public:
 			}
 			// 计算pi这一组的可达性和距离
 			if(materialized((*it).front(),query)){	//	可达性已知，不需要计算
+				it++;
 				continue;
 			}else if(unkownMaterializedNum((*it).front(),query,keyTmp)==1){	// 只有一个可达性未知的距离，求该距离的最小值即可
 				query_list.clear();
@@ -580,7 +570,7 @@ public:
 				// query if two node reach each other by TL_Label
 				char indexFile[64];
 				strcpy(indexFile, "../index/p2p_scc");
-				res = judgeReachable(Util::countFileRows("./data.txt"), indexFile, query_list);	// if p is reachable, return 1; else return 0
+				res = judgeReachable(dataFile, indexFile, query_list);	// if p is reachable, return 1; else return 0
 
 				// judge p in Pi which can reach  keyword keytmp
 				vector<int> distmp;
@@ -590,6 +580,12 @@ public:
 						distmp.push_back(graph.minDist((*it).at(i),keyTmp) - 1);	// graph中关键词被转化为结点，所以距离要减去1
 					}
 				}
+
+				if(distmp.size()==0){	//	即所有结点都不可达
+					it=P.erase(it);
+					continue;
+				}
+
 				int min;
 				vector<int> minIndex;
 
@@ -631,7 +627,7 @@ public:
 				// query if two node reach each other by TL_Label
 				char indexFile[64];
 				strcpy(indexFile, "../index/p2p_scc");
-				res = judgeReachable(Util::countFileRows("./data.txt"), indexFile, query_list);	// if p is reachable, return 1; else return 0
+				res = judgeReachable(dataFile, indexFile, query_list);	// if p is reachable, return 1; else return 0
 
 				// judge p in Skyline can reach all query keyword in q.Ψ
 				vector<int> PUnReachable;
@@ -678,14 +674,12 @@ public:
 				//	删除原来的分组*it
 				it=P.erase(it);
 				bflag=true;
-				// #####################################################################################
-
 			}
 			if(!bflag){
 				it++;
 			}
 		}
-		cout<<18<<endl;
+		
 		cout<<"newGroup num:"<<newGroup.size()<<endl;
 		// 将第三步裁剪拆出来的分组写入原来的分组P中
 		for(vector<int>::iterator it=newGroup.begin();it<newGroup.end();it++){
@@ -693,14 +687,13 @@ public:
 			tmp.push_back(*it);
 			P.push_back(tmp);
 		}
-
+		cout<<18<<endl;
 		// ========================================================================================================== //
 		// this->sortDistMap();
 		DominanceCheck(P,t4);	// DominanceCheck(P);
 		cout<<19<<endl;	
-		for (vector<vector<int>>::iterator it = P.begin(); it < P.end(); ) {	// Add each Pi∈ P to Skyline;
-			vector<int> pi = (*it);
-			for (vector<int>::iterator it_p = pi.begin(); it_p < pi.end(); it_p++) {
+		for (vector<vector<int>>::iterator it = P.begin(); it < P.end();it++) {	// Add each Pi∈ P to Skyline;
+			for (vector<int>::iterator it_p = (*it).begin(); it_p < (*it).end(); it_p++) {
 				Skyline.push_back(*it_p);
 			}
 		}
