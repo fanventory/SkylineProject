@@ -62,9 +62,6 @@ public:
 
 	// 获取倒排索引中点p到关键词key的距离，点p到关键词key的距离未知，返回4
 	int getDistByMap(int p,int key) {
-		if(this->distMap[p]==NULL){
-			return -1;
-		}
 		for (vector<keyDist>::iterator it = this->distMap[p].begin(); it < this->distMap[p].end(); it++) {
 			if ((*it).key == key) {
 				return (*it).dist;
@@ -87,11 +84,11 @@ public:
 	}
 
 	// 计算点p到关键词组有多少可达性未知的路径,并返回其中一个可达性未知的关键词
-	int unkownMaterializedNum(int p,vector<int> query，int &key){
+	int unkownMaterializedNum(int p,vector<int> query,int &key_){
 		int i=0;
 		for(vector<keyDist>::iterator it=this->distMap[p].begin();it<this->distMap[p].end();it++){
 			if((*it).dist==4){
-				key=(*it).key;
+				key_=(*it).key;
 				i++;
 			}
 		}
@@ -100,7 +97,7 @@ public:
 
 	// 获取点p到所有关键词的距离
 	void ComputeDist(int p, vector<int> query) {
-		Graph graph;
+		Graph graph=Graph::getInstance();
 		int d;
 		/*
 			点p到关键词*it存在多个可达结点的情况：
@@ -125,12 +122,12 @@ public:
 	}
 
 	// 判断某个结点在全局变量distMap中是否存在，若存在返回true，否则返回false
-	void isExistInMap(int p){
+	bool isExistInMap(int p){
 		map<int,vector<keyDist>>::iterator index=this->distMap.find(p);
 		if(index==this->distMap.end()){
-			retrun false;
+			return false;
 		}else{
-			retrun true;
+			return true;
 		}
 
 	}
@@ -148,7 +145,7 @@ public:
 
 	//	计算语义地点中可达性未知的距离，然后更新this->distMap中储存的距离
 	void computeAndUpdateDist(int p, vector<int> query){
-		Graph graph;
+		Graph graph=Graph::getInstance();
 		vector<keyDist> newDIst;
 		for (vector<int>::iterator it = query.begin(); it < query.end(); it++) {
 			int d;
@@ -166,7 +163,7 @@ public:
 		//	排序
 		sort(newDIst.begin(),newDIst.end(),Util::comp);
 		// 更新this->distMap中储存的距离
-		this->distMap[p].swap(minNode);
+		this->distMap[p].swap(newDIst);
 	}
 
 	// Partition根据距离划分Cand
@@ -577,7 +574,7 @@ public:
 			}else if(unkownMaterializedNum((*it).front(),query,keyTmp)==1){	// 只有一个可达性未知的距离，求该距离的最小值即可
 				query_list.clear();
 				for (vector<int>::iterator it_inner = (*it).begin(); it_inner < (*it).end(); it_inner++) {	// for each p ∈ Pido
-					query_list.push_back(*it_inner,keyTmp);
+					query_list.push_back(queryNode(*it_inner,keyTmp));
 				}
 				
 				// query if two node reach each other by TL_Label
@@ -589,6 +586,7 @@ public:
 				vector<int> distmp;
 				for(int i=0;i<res.size();i++){
 					if(res[i]==1){	//	可达则求距离
+						Graph graph=Graph::getInstance();
 						distmp.push_back(graph.minDist((*it).at(i),keyTmp) - 1);	// graph中关键词被转化为结点，所以距离要减去1
 					}
 				}
@@ -660,9 +658,9 @@ public:
 				}	
 				// 计算完距离后，两两之间支配比较
 				bool tflag=false;
-				for (vector<vector<int>>::iterator it_group = groupTmp.begin(); it_group < groupTmp.end(); ) {
-					for (vector<vector<int>>::iterator it_group_inner = it+1; it_group_inner < groupTmp.end(); it_group_inner++) {
-						if(control((*it_group_inner).front(),(*it_group).front())){
+				for (vector<int>::iterator it_group = groupTmp.begin(); it_group < groupTmp.end(); ) {
+					for (vector<int>::iterator it_group_inner = it_group+1; it_group_inner < groupTmp.end(); it_group_inner++) {
+						if(control(*it_group_inner,*it_group)){
 							it_group = groupTmp.erase(it_group);	// Pi is pruned and removed;
 							t3++;	// 记录裁剪次数
 							tflag=true;	// 执行 P.erase(it);后，it指向下一个结点，此时不需要执行it++语句

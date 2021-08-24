@@ -44,13 +44,13 @@ int main(int argc, char **argv) {
 	*/
 
 	// 准备工作
-	Graph *graph=new Graph();
+	Graph graph=Graph::getInstance();
 	// 将关键字转化为图中的节点
-	graph->transformGraph(edgeFile, keywordFile);
+	graph.transformGraph(edgeFile, keywordFile);
 	cout<<2<<endl;
 	// *****第一次运行需要执行写入，将index写入硬盘中***** //
 	if(build){
-		graph->write("./data.txt");	// 输出转化后的图（用于TL_LABEL预处理）
+		graph.write("./data.txt");	// 输出转化后的图（用于TL_LABEL预处理）
 		cout<<3<<endl;
 		// TL_LABEL预处理
 		char filename[64], resfilename[64];
@@ -61,19 +61,19 @@ int main(int argc, char **argv) {
 	}
 	// 准备工作结束
 	
-	Leveldb ldb;
-	vector<KeyRow> queryRes= ldb.SLGet(query,SLFileName);	// 从SLdb中获取关键字对应的倒排索引组
-	cout<<5<<endl;
-	SPS sps;
-	// 将倒排序列读入数据结构中
-	sps.init(queryRes);	// 初始化
-	cout<<6<<endl;
-	clock_t startTime,endTime;	// 计时
-	startTime = clock();//计时开始
-	vector<int> Skyline=sps.SPS_calculate(query,SPFileName);	// 执行sps算法
-	endTime = clock();//计时结束
-	cout << "The run time is: " <<(double)(endTime - startTime) / CLOCKS_PER_SEC << "s" << endl;
-	cout<<7<<endl;
-	for_each(Skyline.begin(), Skyline.end(), show);	// 显示Skyline结果
-	return 0;
+	// Leveldb ldb;
+	// vector<KeyRow> queryRes= ldb.SLGet(query,SLFileName);	// 从SLdb中获取关键字对应的倒排索引组
+	// cout<<5<<endl;
+	// SPS sps;
+	// // 将倒排序列读入数据结构中
+	// sps.init(queryRes);	// 初始化
+	// cout<<6<<endl;
+	// clock_t startTime,endTime;	// 计时
+	// startTime = clock();//计时开始
+	// vector<int> Skyline=sps.SPS_calculate(query,SPFileName);	// 执行sps算法
+	// endTime = clock();//计时结束
+	// cout << "The run time is: " <<(double)(endTime - startTime) / CLOCKS_PER_SEC << "s" << endl;
+	// cout<<7<<endl;
+	// for_each(Skyline.begin(), Skyline.end(), show);	// 显示Skyline结果
+	// return 0;
 }

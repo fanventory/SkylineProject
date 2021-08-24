@@ -6,7 +6,12 @@ private:
 	vector<Node> nodes;
 	map<int, int> nodesMap;
 	int edgeNum;	// 边数量
+	Graph(){}
 public:
+	static Graph& getInstance(){
+        static Graph instance;
+        return instance;
+    }
 	~Graph() {
 		for (vector<Node>::iterator it = this->nodes.begin(); it < this->nodes.end(); it++) {
 			(*it).edge.~vector();
