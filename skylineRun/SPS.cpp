@@ -60,8 +60,11 @@ public:
 		}
 	}
 
-	// 获取倒排索引中点p到关键词key的距离，点p到关键词key的距离位置，返回-1
+	// 获取倒排索引中点p到关键词key的距离，点p到关键词key的距离未知，返回4
 	int getDistByMap(int p,int key) {
+		if(this->distMap[p]==NULL){
+			return -1;
+		}
 		for (vector<keyDist>::iterator it = this->distMap[p].begin(); it < this->distMap[p].end(); it++) {
 			if ((*it).key == key) {
 				return (*it).dist;
@@ -115,7 +118,11 @@ public:
 					cout<<"error: "<<p<<" cannot reach find keyword "<< *it <<endl;
 				}
 				// 将计算好的值存入字典中
-				this->distMap[p].push_back(keyDist(*it, d));
+				if(this->distMap[p].size()==query.size()){	//	修改
+					
+				}else{	//	新增
+					this->distMap[p].push_back(keyDist(*it, d));
+				}
 			} 
 		}
 	}
@@ -344,13 +351,13 @@ public:
 		for (vector<int>::iterator sIter = Skyline.begin(); sIter != Skyline.end(); sIter++) {	// for each p ∈ Skyline do
 			ComputeDist(*sIter,query);	// ComputeDist(p, q.ψ);
 		}
-		this->sortDistMap();
 		cout<<13<<endl;	
 
 		// P ← Partition(Cand);
 		vector<vector<int>> P = Partition(Cand, query);	
 		cout<<14<<endl;	
-
+		this->sortDistMap();
+		cout<<15<<endl;	
 		for (vector<vector<int>>::iterator it = P.begin(); it < P.end(); ) {	// for each partition Pi∈ P do
 			bool bflag = false;
 			vector<int> pi = (*it);
@@ -373,7 +380,7 @@ public:
 					/*
 						三种情况：
 						1.计算所有的值
-						2.不计算值
+						2.不计算值(目前)
 						3.不做第二步裁剪
 					*/
 					// ##########################################################################
@@ -396,7 +403,7 @@ public:
 			}
 		}
 
-		cout<<15<<endl;	
+		cout<<16<<endl;	
 		// ========================================================================================================== //
 		// 方法1：对P中的点先求可达性和距离，再进行两两支配关系比较
 
@@ -503,9 +510,10 @@ public:
 		
 		// ========================================================================================================== //
 		// 方法3：先求支配关系，过滤掉不适合的组后，再计算可达性和距离
-		bool bflag=false;
-		int keyTmp;
+		vector<int> newGroup;	//	记录裁剪3独立出来的分组
 		for (vector<vector<int>>::iterator it = P.begin(); it < P.end(); ) {	// for each partition Pi∈ P do
+			bool bflag=false;
+			int keyTmp;
 			for (vector<vector<int>>::iterator it_inner = it+1; it_inner < P.end(); it_inner++) {
 				if(strictControl((*it).front(),(*it_inner).front())){
 					it = P.erase(it);	// Pi is pruned and removed;
@@ -538,15 +546,33 @@ public:
 						distmp.push_back(graph.minDist((*it).at(i),keyTmp) - 1);	// graph中关键词被转化为结点，所以距离要减去1
 					}
 				}
-				int min=distmp.front();
-				for(vector<int>::iterator it_inner=distmp.begin();it_inner<distmp.end();it_inner++){	// 计算最小的距离
-					if(*it_inner<min){
-						min=*it_inner;
+				int min;
+				vector<int> minIndex;
+
+				for(int i=0;i<distmp.size();i++){	// 计算最小的距离
+					if(distmp[i]<0){
+						continue;
+					}else{
+						if(minIndex.empty()){	//	将第一个不为负的设定为最小值，后续的值都会与该值进行比较
+							min=distmp[i];
+							minIndex.push_back(i);	//	最小距离可能不止一个
+						}else{
+							if(distmp[i]<min){	//	比较最小值
+								min=distmp[i];
+								minIndex.clear();
+								minIndex.push_back(i);
+							}
+						}
 					}
 				}
-				// #############################################################
-				(*it)
-			}else{
+				vector<int> minNode;
+				//	获取最小值的节点
+				for(int i=0;i<minIndex.size();i++){
+					minNode.push_back((*it).at(minIndex[i]));
+				}
+				(*it).swap(minNode);	//	将计算出来的最小值队列替换原队列
+			}else{	// 有多个可达性未知的距离，将该组的所有结点拆开，计算距离，分离成独立组，再做组间支配运算
+				vector<int> groupTmp(*it);
 
 			}
 			if(!bflag){
@@ -555,6 +581,7 @@ public:
 		}
 
 		// ========================================================================================================== //
+		this->sortDistMap();
 		DominanceCheck(P,t3);	// DominanceCheck(P);
 		cout<<19<<endl;	
 		for (vector<vector<int>>::iterator it = P.begin(); it < P.end(); ) {	// Add each Pi∈ P to Skyline;
