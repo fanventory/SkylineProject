@@ -429,7 +429,7 @@ void Hdfs() {
 
 	memset(indice, -1, sizeof(int) * vertexN);
 	dfsT.push(i);
-
+	cout<<2<<endl;
 	while (!dfsT.empty())  //DFS visit
 	{
 		int curVtest = dfsT.top();
@@ -1039,15 +1039,11 @@ void transform() {
 }
 
 void pre_processing(char *filename,char *resfilename) {
-	cout<<1<<endl;
-	try
-	{
-		// read DAG
+	// read DAG
 	int i = 1;
 	//char *filename, *resfilename; // *resfilename=" -i ../index/"
 	FILE *in_file = fopen(filename, "r");
 	load(in_file);
-
 	findHD();
 	for (int q = 0; q < K; q++)
 		printf("%d th highdegree vertex: %d out degree\n", q + 1, outd[Hdegree[q]]);
@@ -1076,13 +1072,6 @@ void pre_processing(char *filename,char *resfilename) {
 	TLabel();
 
 	delete[] SL;
-	}
-	catch(const std::exception& e)
-	{
-		std::cerr << e.what() << '\n';
-	}
-	
-	
 }
 
 
