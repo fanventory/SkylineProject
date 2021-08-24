@@ -44,13 +44,13 @@ int main(int argc, char **argv) {
 	*/
 
 	// 准备工作
-	Graph *graph=new Graph();
+	Graph graph=Graph::getInstance();
 	// 将关键字转化为图中的节点
-	graph->transformGraph(edgeFile, keywordFile);
+	graph.transformGraph(edgeFile, keywordFile);
 	cout<<2<<endl;
 	// *****第一次运行需要执行写入，将index写入硬盘中***** //
 	if(build){
-		graph->write("./data.txt");	// 输出转化后的图（用于TL_LABEL预处理）
+		graph.write("./data.txt");	// 输出转化后的图（用于TL_LABEL预处理）
 		cout<<3<<endl;
 		// TL_LABEL预处理
 		char filename[64], resfilename[64];
@@ -73,7 +73,7 @@ int main(int argc, char **argv) {
 	vector<int> Skyline=sps.SPS_calculate(query,SPFileName);	// 执行sps算法
 	endTime = clock();//计时结束
 	cout << "The run time is: " <<(double)(endTime - startTime) / CLOCKS_PER_SEC << "s" << endl;
-	cout<<7<<endl;
 	for_each(Skyline.begin(), Skyline.end(), show);	// 显示Skyline结果
+	cout<<endl<<7<<endl;
 	return 0;
 }

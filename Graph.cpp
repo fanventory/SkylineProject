@@ -12,6 +12,12 @@ public:
         static Graph instance;
         return instance;
     }
+	~Graph() {
+		for (vector<Node>::iterator it = this->nodes.begin(); it < this->nodes.end(); it++) {
+			(*it).edge.~vector();
+		}
+		this->nodes.~vector();
+	}
 	// 将关键字整合到图中，成为图中节点，便于计算可达性和距离
 	void transformGraph(string edgeFileName, string keywordFileName) {
 		// 打开文件
