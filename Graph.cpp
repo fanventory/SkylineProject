@@ -6,6 +6,7 @@ private:
 	vector<Node> nodes;
 	map<int, int> nodesMap;
 	int edgeNum;	// 边数量
+	int maxNode;
 	Graph(){}
 public:
 	static Graph& getInstance(){
@@ -27,6 +28,7 @@ public:
 		assert(infile.is_open());   // 若失败,则输出错误消息,并终止程序运行
 		string s;
 		this->edgeNum=0;
+		this->maxNode=-1;
 
 		// 读取edge文件
 		getline(infile, s);	// 跳过第一行
@@ -35,10 +37,16 @@ public:
 			vector<string> temp = Util::split(s, ": ");
 			Node nodeT;
 			nodeT.node = stoi(temp.front());	// 存储结点
+			if(stoi(temp.front())>this->maxNode){
+				this->maxNode=stoi(temp.front());
+			}
 			vector<string> edgeT = Util::split(temp.back(), ",");	// 存储边
 			for (vector<string>::iterator it = edgeT.begin(); it != edgeT.end() - 1; it++) {
 				nodeT.edge.push_back(stoi(*it));
 				this->edgeNum++;
+				if(stoi(*it)>this->maxNode){
+					this->maxNode=stoi(*it);
+				}
 			}
 			this->nodes.push_back(nodeT);
 			nodesMap[nodeT.node] = this->nodes.size() - 1;

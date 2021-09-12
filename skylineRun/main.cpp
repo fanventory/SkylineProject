@@ -6,7 +6,7 @@ void show(int &v) { cout << v << ","; }
 
 int main(int argc, char **argv) {
 	// DBpediaVB 数据集
-	/*
+		/*
 	string edgeFile="/home/zhangzf/program/SPSLGraph/data/DBpediaVB/edgeDBpediaVB.txt";
 	string keywordFile="/home/zhangzf/program/SPSLGraph/data/DBpediaVB/nidKeywordsListMapDBpediaVB.txt";
 	string pidCoordFile="/home/zhangzf/program/SPSLGraph/data/DBpediaVB/pidCoordDBpediaVB.txt";
