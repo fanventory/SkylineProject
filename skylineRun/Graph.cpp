@@ -6,12 +6,19 @@ private:
 	vector<Node> nodes;
 	map<int, int> nodesMap;
 	int edgeNum;	// 边数量
+	int maxNode;
 	Graph(){}
 public:
 	static Graph& getInstance(){
         static Graph instance;
         return instance;
     }
+	~Graph() {
+		for (vector<Node>::iterator it = this->nodes.begin(); it < this->nodes.end(); it++) {
+			(*it).edge.~vector();
+		}
+		this->nodes.~vector();
+	}
 	// 将关键字整合到图中，成为图中节点，便于计算可达性和距离
 	void transformGraph(string edgeFileName, string keywordFileName) {
 		// 打开文件
@@ -21,6 +28,7 @@ public:
 		assert(infile.is_open());   // 若失败,则输出错误消息,并终止程序运行
 		string s;
 		this->edgeNum=0;
+		this->maxNode=-1;
 
 		// 读取edge文件
 		getline(infile, s);	// 跳过第一行
@@ -29,10 +37,16 @@ public:
 			vector<string> temp = Util::split(s, ": ");
 			Node nodeT;
 			nodeT.node = stoi(temp.front());	// 存储结点
+			if(stoi(temp.front())>this->maxNode){
+				this->maxNode=stoi(temp.front());
+			}
 			vector<string> edgeT = Util::split(temp.back(), ",");	// 存储边
 			for (vector<string>::iterator it = edgeT.begin(); it != edgeT.end() - 1; it++) {
 				nodeT.edge.push_back(stoi(*it));
 				this->edgeNum++;
+				if(stoi(*it)>this->maxNode){
+					this->maxNode=stoi(*it);
+				}
 			}
 			this->nodes.push_back(nodeT);
 			nodesMap[nodeT.node] = this->nodes.size() - 1;
