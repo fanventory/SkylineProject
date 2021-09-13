@@ -13,12 +13,7 @@ public:
         static Graph instance;
         return instance;
     }
-	~Graph() {
-		for (vector<Node>::iterator it = this->nodes.begin(); it < this->nodes.end(); it++) {
-			(*it).edge.~vector();
-		}
-		this->nodes.~vector();
-	}
+	~Graph() {}
 	// 将关键字整合到图中，成为图中节点，便于计算可达性和距离
 	void transformGraph(string edgeFileName, string keywordFileName) {
 		// 打开文件
@@ -75,10 +70,13 @@ public:
 				index = (*mapIter).second;
 			}
 			
-			vector<string> edgeT = Util::split(temp.back(), ",");	// 存储边
+			vector<string> edgeT = Util::split(temp.back(), ",");	// 存储关键词
 			for (vector<string>::iterator it = edgeT.begin(); it != edgeT.end() - 1; it++) {
 				this->nodes[index].edge.push_back(stoi(*it));
 				this->edgeNum++;
+				if(stoi(*it)>this->maxNode){
+					this->maxNode=stoi(*it);
+				}
 			}
 		}
 		infile.close();
@@ -90,7 +88,7 @@ public:
 		outfile.open(outputFileName.data());   // 将文件流对象与文件连接起来 
 		assert(outfile.is_open());   // 若失败,则输出错误消息,并终止程序运行
 
-		outfile<<this->nodes.size()<<" "<<this->edgeNum<<" "<<endl;
+		outfile<<this->nodes.size()<<" "<<this->maxNode<<" "<<endl;
 		for(vector<Node>::iterator it=this->nodes.begin();it!=this->nodes.end();it++){
 			outfile<<(*it).node<<" "<<(*it).edge.size();
 			for(vector<int>::iterator it_inner=(*it).edge.begin();it_inner!=(*it).edge.end();it_inner++){

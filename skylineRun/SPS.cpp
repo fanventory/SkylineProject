@@ -51,7 +51,7 @@ public:
 
 	// 获取倒排索引中点p到关键词key的距离，点p到关键词key的距离未知，返回4
 	int getDistByMap(int p,int key) {
-		if(this->distMap[p]==NULL){
+		if(this->distMap.find(p)==this->distMap.end()){
 			return -1;
 		}
 		for (vector<keyDist>::iterator it = this->distMap[p].begin(); it < this->distMap[p].end(); it++) {
@@ -246,13 +246,16 @@ public:
 		vector<keyDist> rowj=this->distMap[pj];
 		// 如果语义地点的可达性未知，则返回true，不执行裁剪
 		if(rowi.size()!=this->queryNum || rowj.size()!=this->queryNum){
-			return true;
+			return false;
 		}
 		bool flag=false;	// 用于判断rowi和rowj中所有距离都相等的情况
 		// 如果不可支配，返回false
 		for(int i=0;i<rowi.size();i++){
+			if(rowi[i].dist<0 || rowj[i].dist < 0){	//	点pi或pj中其中一个距离不可达，那他们之间为不可支配关系
+				return false;	//	不可支配
+			}
 			if(rowi[i].dist>rowj[i].dist){
-				return false;	//不可支配
+				return false;	// 不可支配
 			}else if(rowi[i].dist<rowj[i].dist){
 				flag=true;
 			}
@@ -275,6 +278,9 @@ public:
 		}
 		// 如果不可支配，返回false
 		for(int i=0;i<rowi.size();i++){
+			if(rowi[i].dist<0 || rowj[i].dist < 0){	//	点pi或pj中其中一个距离不可达，那他们之间为不可支配关系
+				return false;	//	不可支配
+			}
 			if(rowi[i].dist>=rowj[i].dist){
 				return false;	//不可支配
 			}
@@ -286,7 +292,7 @@ public:
 	void DominanceCheck(vector<vector<int>> &P,int &t3){
 		for (vector<vector<int>>::iterator it = P.begin(); it < P.end(); ) {	// for each partition Pi∈ P do
 			bool bflag=false;
-			for (vector<vector<int>>::iterator it_inner = it+1; it_inner < P.end(); it_inner++) {
+			for (vector<vector<int>>::iterator it_inner = P.begin(); it_inner < P.end(); it_inner++) {
 				if(control((*it_inner).front(),(*it).front())){
 					it = P.erase(it);	// Pi is pruned and removed;
 					t3++;	// 记录裁剪次数
@@ -436,7 +442,6 @@ public:
 				it++;	// 避免最后一个结点执行P.erase()后，执行it++操作导致报错，所以it++在此处执行
 			}
 		}
-
 		cout<<16<<endl;	
 		// ========================================================================================================== //
 		// 方法1：对P中的点先求可达性和距离，再进行两两支配关系比较
@@ -548,7 +553,8 @@ public:
 		for (vector<vector<int>>::iterator it = P.begin(); it < P.end(); ) {	// for each partition Pi∈ P do
 			bool bflag=false;
 			int keyTmp;
-			for (vector<vector<int>>::iterator it_inner = it+1; it_inner < P.end(); it_inner++) {
+			for (vector<vector<int>>::iterator it_inner = P.begin(); it_inner < P.end(); it_inner++) {
+         cout<<"+++++"<<(*it).front()<<"<"<<(*it_inner).front()<<endl;
 				if(strictControl((*it).front(),(*it_inner).front())){	//	该组与其他组之间做严格支配比较
 					it = P.erase(it);	// Pi is pruned and removed;
 					t3++;
@@ -585,9 +591,9 @@ public:
 
 				if(distmp.size()==0){	//	即所有结点都不可达
 					it=P.erase(it);
+          t3++;
 					continue;
 				}
-
 				int min;
 				vector<int> minIndex;
 
@@ -700,7 +706,7 @@ public:
 			}
 		}
 
-		cout<<"t1:"<<t1<<endl<<"t2:"<<t2<<endl<<"t3:"<<t3<<endl;
+		cout<<"t1:"<<t1<<endl<<"t2:"<<t2<<endl<<"t3:"<<t3<<endl<<"t4:"<<t4<<endl;
 		return Skyline;
 	}
 };

@@ -6,7 +6,7 @@ void show(int &v) { cout << v << ","; }
 
 int main(int argc, char **argv) {
 	// DBpediaVB 数据集
-		/*
+	/*
 	string edgeFile="/home/zhangzf/program/SPSLGraph/data/DBpediaVB/edgeDBpediaVB.txt";
 	string keywordFile="/home/zhangzf/program/SPSLGraph/data/DBpediaVB/nidKeywordsListMapDBpediaVB.txt";
 	string pidCoordFile="/home/zhangzf/program/SPSLGraph/data/DBpediaVB/pidCoordDBpediaVB.txt";
@@ -73,7 +73,8 @@ int main(int argc, char **argv) {
 	vector<int> Skyline=sps.SPS_calculate(query,SPFileName);	// 执行sps算法
 	endTime = clock();//计时结束
 	cout << "The run time is: " <<(double)(endTime - startTime) / CLOCKS_PER_SEC << "s" << endl;
+  cout<<"skyline is : ";
 	for_each(Skyline.begin(), Skyline.end(), show);	// 显示Skyline结果
-	cout<<endl<<7<<endl;
+   cout<<endl<<endl;
 	return 0;
 }
