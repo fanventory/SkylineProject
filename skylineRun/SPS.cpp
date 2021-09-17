@@ -8,9 +8,11 @@ private:
 	map<int, int> index;	// 三元组索引
 	map<int, vector<keyDist>> distMap;	// 存储结点到关键词距离
 	int queryNum;	// 查询关键词的数量
+ 	Graph *graph;
 public:
 	// 根据读取到的文本行，构造倒排索引数据结构
-	void init(vector<KeyRow> row) {
+	void init(vector<KeyRow> row,Graph &graph) {
+    	this->graph=&graph;
 		for (vector<KeyRow>::iterator it = row.begin(); it < row.end(); it++) {
 			this->keyRows.push_back(*it);
 			this->index[(*it).key] = this->keyRows.size() - 1;
@@ -89,7 +91,6 @@ public:
 
 	// 获取点p到所有关键词的距离
 	void ComputeDist(int p, vector<int> query) {
-		Graph graph=Graph::getInstance();
 		int d;
 		/*
 			点p到关键词*it存在多个可达结点的情况：
@@ -102,7 +103,7 @@ public:
 			// 查看字典distMap中是否存储了点p到关键词*it的距离
 			d=this->getDistByMap(p,*it);
 			if (d == 4) {	// 字典distMap没有点p到关键词*it的距离，调用graph.minDist计算距离
-				d = graph.minDist(p, *it) - 1;	// graph中关键词被转化为结点，所以距离要减去1
+				d = this->graph->minDist(p, *it) - 1;	// graph中关键词被转化为结点，所以距离要减去1
 				if (d < 0) {	// 点p到关键词*it不可达，返回一个空数组
 					cout<<"error: "<<p<<" cannot reach find keyword "<< *it <<endl;
 				}
@@ -136,14 +137,13 @@ public:
 
 	//	计算语义地点中可达性未知的距离，然后更新this->distMap中储存的距离
 	void computeAndUpdateDist(int p, vector<int> query){
-		Graph graph=Graph::getInstance();
 		vector<keyDist> newDIst;
 		for (vector<int>::iterator it = query.begin(); it < query.end(); it++) {
 			int d;
 			// 查看字典distMap中是否存储了点p到关键词*it的距离
 			d=this->getDistByMap(p,*it);
 			if (d == 4) {	// 字典distMap没有点p到关键词*it的距离，调用graph.minDist计算距离
-				d = graph.minDist(p, *it) - 1;	// graph中关键词被转化为结点，所以距离要减去1
+				d = this->graph->minDist(p, *it) - 1;	// graph中关键词被转化为结点，所以距离要减去1
 				if (d < 0) {	// 点p到关键词*it不可达，返回一个空数组
 					cout<<"error: "<<p<<" cannot reach find keyword "<< *it <<endl;
 				}
@@ -368,7 +368,7 @@ public:
 		
 		// query if two node reach each other by TL_Label
 		vector<int> res = judgeReachable(dataFile, indexFile, query_list);	// if p is reachable, return 1; else return 0
-		cout<<12<<endl;	
+		// cout<<12<<endl;	
 
 		// judge p in Skyline can reach all query keyword in q.Ψ
 		vector<int> SkylineUnReachable;
@@ -390,14 +390,15 @@ public:
 
 		// Compute distance that node in Skyline
 		for (vector<int>::iterator sIter = Skyline.begin(); sIter != Skyline.end(); sIter++) {	// for each p ∈ Skyline do
+       
 			ComputeDist(*sIter,query);	// ComputeDist(p, q.ψ);
 		}
-		cout<<13<<endl;	
+		// cout<<13<<endl;	
 		// P ← Partition(Cand);
 		vector<vector<int>> P = Partition(Cand, query);	
-		cout<<14<<endl;	
+		// cout<<14<<endl;	
 		this->sortDistMap();
-		cout<<15<<endl;	
+		// cout<<15<<endl;	
 		for (vector<vector<int>>::iterator it = P.begin(); it < P.end(); ) {	// for each partition Pi∈ P do
 			bool bflag = false;
 			vector<int> pi = (*it);
@@ -442,7 +443,7 @@ public:
 				it++;	// 避免最后一个结点执行P.erase()后，执行it++操作导致报错，所以it++在此处执行
 			}
 		}
-		cout<<16<<endl;	
+		// cout<<16<<endl;	
 		// ========================================================================================================== //
 		// 方法1：对P中的点先求可达性和距离，再进行两两支配关系比较
 
@@ -554,7 +555,6 @@ public:
 			bool bflag=false;
 			int keyTmp;
 			for (vector<vector<int>>::iterator it_inner = P.begin(); it_inner < P.end(); it_inner++) {
-         cout<<"+++++"<<(*it).front()<<"<"<<(*it_inner).front()<<endl;
 				if(strictControl((*it).front(),(*it_inner).front())){	//	该组与其他组之间做严格支配比较
 					it = P.erase(it);	// Pi is pruned and removed;
 					t3++;
@@ -576,22 +576,19 @@ public:
 				}
 				
 				// query if two node reach each other by TL_Label
-				char indexFile[64];
-				strcpy(indexFile, "../index/p2p_scc");
 				res = judgeReachable(dataFile, indexFile, query_list);	// if p is reachable, return 1; else return 0
 
 				// judge p in Pi which can reach  keyword keytmp
 				vector<int> distmp;
 				for(int i=0;i<res.size();i++){
 					if(res[i]==1){	//	可达则求距离
-						Graph graph=Graph::getInstance();
-						distmp.push_back(graph.minDist((*it).at(i),keyTmp) - 1);	// graph中关键词被转化为结点，所以距离要减去1
+						distmp.push_back(this->graph->minDist((*it).at(i),keyTmp) - 1);	// graph中关键词被转化为结点，所以距离要减去1
 					}
 				}
 
 				if(distmp.size()==0){	//	即所有结点都不可达
 					it=P.erase(it);
-          t3++;
+         			t3++;
 					continue;
 				}
 				int min;
@@ -632,9 +629,8 @@ public:
 						query_list.push_back(temp);	// query_list用于调用TL_LABEL算法判断可达性
 					}
 				}
+       
 				// query if two node reach each other by TL_Label
-				char indexFile[64];
-				strcpy(indexFile, "../index/p2p_scc");
 				res = judgeReachable(dataFile, indexFile, query_list);	// if p is reachable, return 1; else return 0
 
 				// judge p in Skyline can reach all query keyword in q.Ψ
@@ -695,11 +691,11 @@ public:
 			tmp.push_back(*it);
 			P.push_back(tmp);
 		}
-		cout<<18<<endl;
+		// cout<<18<<endl;
 		// ========================================================================================================== //
 		// this->sortDistMap();
 		DominanceCheck(P,t4);	// DominanceCheck(P);
-		cout<<19<<endl;	
+		// cout<<19<<endl;	
 		for (vector<vector<int>>::iterator it = P.begin(); it < P.end();it++) {	// Add each Pi∈ P to Skyline;
 			for (vector<int>::iterator it_p = (*it).begin(); it_p < (*it).end(); it_p++) {
 				Skyline.push_back(*it_p);

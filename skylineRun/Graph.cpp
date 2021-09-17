@@ -3,8 +3,11 @@
 class Graph
 {
 private:
-	vector<Node> nodes;
-	map<int, int> nodesMap;
+	vector<Node *> rNodes;
+	vector<Node *> cNodes;
+	// 修改图的数据结构
+	map<int, int> rNodesMap;	//	行索引
+	map<int, int> cNodesMap;	//	列索引
 	int edgeNum;	// 边数量
 	int maxNode;
 	Graph(){}
@@ -13,7 +16,101 @@ public:
         static Graph instance;
         return instance;
     }
-	~Graph() {}
+
+	//	获取链表数量
+	int getNodeListSize(Node *no,char type){
+		Node *p=no;
+		int n=0;
+		if(type=='r'){
+			while(p!=NULL){
+				p=p->right;
+				n++;
+			} 
+		}else if(type=='c'){
+			while(p!=NULL){
+				p=p->down;
+				n++;
+			}
+		}
+		return n;
+	}
+
+	//	获取十字链表中指定行或列的最后一个链表结点,ytpe取值r或c指示遍历方向
+	Node *getLastNode(Node *no,char type){
+		Node *p=no;
+		if(type=='r'){	//	向右遍历最后一个结点
+			if(p==NULL){	//	空链表
+				return NULL;
+			}
+			while(p->right!=NULL){
+				p=p->right;
+			}
+			return p;	//	返回最后一个结点
+		}else if(type=='c'){
+			if(p==NULL){	//	空链表
+				return NULL;
+			}
+			while(p->down!=NULL){
+				p=p->down;
+			}
+			return p;	//	返回最后一个结点
+		}
+		cout<<"type值传入出错！"<<endl;
+		return NULL;	//	type传入出错
+	}
+
+	//	将边信息插入十字链表中
+	void insertEdge(int from,int to){
+		this->edgeNum++;	//	边数自增
+		if(to>this->maxNode){
+			this->maxNode=to;
+		}
+		//	将边插入十字链表中
+		//	初始化结点
+		Node *head=(Node *)malloc(sizeof(Node));
+		head->from=from;
+		head->to=to;
+		head->right=NULL;
+		head->down=NULL;
+		//	初始化链表索引
+		map<int, int>::iterator index;
+		Node *row=NULL,*column=NULL;
+
+		//	判断行索引是否存在
+		index=this->rNodesMap.find(from);
+		if(index==this->rNodesMap.end()){	//	from结点的索引不存在
+			this->rNodesMap[from]=this->rNodes.size();	//	建立行索引
+		}else{//	from结点的索引存在
+			row=this->getLastNode(this->rNodes[this->rNodesMap[from]],'r');	//	获取该行位置，并得到该行链表的最后一个结点
+		}
+
+		//	判断列索引是否存在
+		index=this->cNodesMap.find(to);
+		if(index==this->cNodesMap.end()){	//	to结点的索引不存在
+			this->cNodesMap[to]=this->cNodes.size();	//	建立列索引
+		}else{	//	from结点的索引存在
+			column=this->getLastNode(this->cNodes[this->cNodesMap[to]],'c');	//	获取该行位置，并得到该行链表的最后一个结点
+		}
+
+		//	将结点插入链表中
+		if(row==NULL){
+			this->rNodes.push_back(head);
+		}else{
+			row->right=head;
+		}
+
+		if(column==NULL){
+			this->cNodes.push_back(head);
+		}else{
+			column->down=head;
+		}
+
+		if(to==15){
+			cout<<"error:"<<"graph build"<<head->from<<endl;
+			cout<<"error:"<<"graph build"<<head->to<<endl;
+		}
+	}
+
 	// 将关键字整合到图中，成为图中节点，便于计算可达性和距离
 	void transformGraph(string edgeFileName, string keywordFileName) {
 		// 打开文件
@@ -30,21 +127,16 @@ public:
 		while (getline(infile, s)) // 读取所有数据
 		{
 			vector<string> temp = Util::split(s, ": ");
-			Node nodeT;
-			nodeT.node = stoi(temp.front());	// 存储结点
-			if(stoi(temp.front())>this->maxNode){
-				this->maxNode=stoi(temp.front());
+			int from = stoi(temp.front());	// 边的起始点
+			if(from>this->maxNode){
+				this->maxNode=from;
 			}
-			vector<string> edgeT = Util::split(temp.back(), ",");	// 存储边
-			for (vector<string>::iterator it = edgeT.begin(); it != edgeT.end() - 1; it++) {
-				nodeT.edge.push_back(stoi(*it));
-				this->edgeNum++;
-				if(stoi(*it)>this->maxNode){
-					this->maxNode=stoi(*it);
-				}
+			vector<string> tos = Util::split(temp.back(), ",");	// 边的终点集合
+			for (vector<string>::iterator it = tos.begin(); it != tos.end() - 1; it++) {	
+				//	end()-1是因为文件每一行结尾是空格，split按空格分割后，空格后面会分割出一个空的字符串
+				int to=stoi(*it);	//	边的终点
+				this->insertEdge(from,to);
 			}
-			this->nodes.push_back(nodeT);
-			nodesMap[nodeT.node] = this->nodes.size() - 1;
 		}
 		infile.close();
 
@@ -52,31 +144,19 @@ public:
 		infile.open(keywordFileName.data());   // 将文件流对象与文件连接起来 
 		assert(infile.is_open());   // 若失败,则输出错误消息,并终止程序运行
 
-		// 读取edge文件
 		getline(infile, s);
 		while (getline(infile, s)) // 读取所有数据
 		{
-			int index;
 			vector<string> temp = Util::split(s, ": ");
-			map<int,int>::iterator mapIter=this->nodesMap.find(stoi(temp.front()));
-			if (mapIter == this->nodesMap.end()) {	// 图中没有该节点
-				Node nodeT;
-				nodeT.node = stoi(temp.front());	// 存储结点
-				this->nodes.push_back(nodeT);
-				nodesMap[nodeT.node] = this->nodes.size() - 1;
-				index= this->nodes.size() - 1;
+			int from=stoi(temp.front());
+			if(from>this->maxNode){
+				this->maxNode=from;
 			}
-			else {
-				index = (*mapIter).second;
-			}
-			
-			vector<string> edgeT = Util::split(temp.back(), ",");	// 存储关键词
-			for (vector<string>::iterator it = edgeT.begin(); it != edgeT.end() - 1; it++) {
-				this->nodes[index].edge.push_back(stoi(*it));
-				this->edgeNum++;
-				if(stoi(*it)>this->maxNode){
-					this->maxNode=stoi(*it);
-				}
+			vector<string> tos = Util::split(temp.back(), ",");	// 获取关键词
+			for (vector<string>::iterator it = tos.begin(); it != tos.end() - 1; it++) {
+				//	end()-1是因为文件每一行结尾是空格，split按空格分割后，空格后面会分割出一个空的字符串
+				int to=stoi(*it);	//	边的终点
+				this->insertEdge(from,to);
 			}
 		}
 		infile.close();
@@ -88,13 +168,15 @@ public:
 		outfile.open(outputFileName.data());   // 将文件流对象与文件连接起来 
 		assert(outfile.is_open());   // 若失败,则输出错误消息,并终止程序运行
 
-		outfile<<this->nodes.size()<<" "<<this->maxNode<<" "<<endl;
-		for(vector<Node>::iterator it=this->nodes.begin();it!=this->nodes.end();it++){
-			outfile<<(*it).node<<" "<<(*it).edge.size();
-			for(vector<int>::iterator it_inner=(*it).edge.begin();it_inner!=(*it).edge.end();it_inner++){
-				outfile<<" "<<(*it_inner);
+		outfile<<this->maxNode+1<<" "<<this->edgeNum<<" "<<endl;
+		for(map<int,int>::iterator it=this->rNodesMap.begin();it!=rNodesMap.end();it++){
+			outfile<<(*it).first<<" "<<getNodeListSize(this->rNodes[(*it).second],'r');
+			Node *p=this->rNodes[(*it).second];
+			while(p!=NULL){
+				outfile<<" "<<p->to;
+				p=p->right;
 			}
-			if(it!=this->nodes.end()-1){
+			if(it!=this->rNodesMap.end()){
 				outfile<<endl;
 			}
 		}
@@ -112,31 +194,33 @@ public:
 		}
 		return false;
 	}
-
+	
 	// 计算图中两结点的最短路径,采用bidirational Search算法
 	int minDist(int from,int to) {
-		bool *visit=new bool[this->nodes.size()];
-		memset(visit,0,sizeof(bool)*this->nodes.size());
+		map<int,bool> visitf;	//	判断结点是否已经遍历过
+		map<int,bool> visitb;
 		queue<int> quf,qub;
 		int distf = 0 ,distb = 0 , index = 0, p = 0, nextFf = from, nextFb=to;
 		quf.push(from);
 		qub.push(to);
-		visit[this->nodesMap[from]]=true;
-		visit[this->nodesMap[to]]=true;
+		visitf[from]=true;
+		visitb[to]=true;
 
 		while (!quf.empty() && !qub.empty()) {
 			if(!quf.empty()){
 				p = quf.front();
 				quf.pop();
 				if(p == to || contains(qub,p)){
-					return distf+distb-1;
+					return distf+distb+1;
 				}
 				// 获取点p的邻接结点
-				for(vector<int>::iterator it=this->nodes[this->nodesMap[p]].edge.begin();it<this->nodes[this->nodesMap[p]].edge.end();it++){
-					if(!visit[this->nodesMap[*it]]){
-						visit[this->nodesMap[*it]]=true;
-						quf.push(*it);
+				Node *no=this->rNodes[this->rNodesMap[p]];
+				while(no!=NULL){
+					if(visitf.find(no->to)==visitf.end()){	//	结点p未访问
+						visitf[no->to]=true;
+						quf.push(no->to);
 					}
+					no=no->right;
 				}
 				// 若点p是当层最后一个结点，路径距离+1
 				if(nextFf==p){
@@ -148,15 +232,17 @@ public:
 			if(!qub.empty()){
 				p = qub.front();
 				qub.pop();
-				if(p == to || contains(quf,p)){
-					return distf+distb-1;
+				if(p == from || contains(quf,p)){
+					return distf+distb+1;
 				}
 				// 获取点p的邻接结点
-				for(vector<int>::iterator it=this->nodes[this->nodesMap[p]].edge.begin();it<this->nodes[this->nodesMap[p]].edge.end();it++){
-					if(!visit[this->nodesMap[*it]]){
-						visit[this->nodesMap[*it]]=true;
-						qub.push(*it);
+				Node *no=this->cNodes[this->cNodesMap[p]];
+				while(no!=NULL){
+					if(visitb.find(no->from)==visitb.end()){	//	结点p未访问
+						visitb[no->from]=true;
+						qub.push(no->from);
 					}
+					no=no->down;
 				}
 				// 若点p是当层最后一个结点，路径距离+1
 				if(nextFb==p){
@@ -167,4 +253,5 @@ public:
 		}
 		return -1;	// 不可达
 	}
+	
 };

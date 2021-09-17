@@ -17,19 +17,8 @@ char* read_buff_1, *read_buff_2;
 char label_name[50];
 int tgraph = 0, pt = 0;
 FILE *sccf, *dagf, *topof, *TLf, *tlsizef;
-/*
-static void usage() {
-	cout << "\nUsage:\n"
-		"	TF-Label [-scc sccNumber] [-h] [-index indexfile] [-q queryfile]  queryNum \n"
-		"Description:\n"
-		"	-h	Print the help message.\n"
-		"	-scc	the number of SCC in DAG.\n"
-		"	-i	Set the index filename .\n"
-		"	-q	Set the query filename .\n"
-		"	queryNum   the number of queries(default number is 1000000)\n"
-		<< endl;
-}
-*/
+
+
 void load(FILE *filename, int * label) {
 	int * buff = (int *)read_buff_1;
 	int num_read = fread(buff, SZ_VERTEX, VERTEX_PER_BLK, filename);
@@ -69,6 +58,8 @@ void getLabelName(char* tmp) {
 }
 // queryNode -- int from ; int to ;
 vector<int> judgeReachable(char *dataFilename,char *ind_filename, vector<queryNode> query_list) {
+	tgraph = 0;
+	pt = 0;
 	int sccN;
 	FILE *infile = fopen(dataFilename, "r");
 	int ret = fscanf(infile, "%d", &sccN);
@@ -94,7 +85,9 @@ vector<int> judgeReachable(char *dataFilename,char *ind_filename, vector<queryNo
 	topo = (int*)malloc(SZ_INT * sccN);  //topological level
 	tlsize = (int*)malloc(SZ_INT * 2 * sccN); // each vertex's label size
 	read_buff_1 = (char *)malloc(BLK_SZ);
+	
 	load(tlsizef, tlsize);  //load each vertex's label size 
+	
 	load(dagf, dag);  //load dag
 	load(topof, topo); //load topological level
 	
