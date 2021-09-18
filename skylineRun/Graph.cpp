@@ -35,7 +35,7 @@ public:
 		return n;
 	}
 
-	//	获取十字链表中指定行或列的最后一个链表结点,ytpe取值r或c指示遍历方向
+	//	获取十字链表中指定行或列的最后一个链表结点,type取值r或c指示遍历方向
 	Node *getLastNode(Node *no,char type){
 		Node *p=no;
 		if(type=='r'){	//	向右遍历最后一个结点
@@ -80,34 +80,22 @@ public:
 		index=this->rNodesMap.find(from);
 		if(index==this->rNodesMap.end()){	//	from结点的索引不存在
 			this->rNodesMap[from]=this->rNodes.size();	//	建立行索引
+			this->rNodes.push_back(head);	//	插入链表中
 		}else{//	from结点的索引存在
-			row=this->getLastNode(this->rNodes[this->rNodesMap[from]],'r');	//	获取该行位置，并得到该行链表的最后一个结点
+			head->right=this->rNodes[this->rNodesMap[from]];
+			this->rNodes[this->rNodesMap[from]]=head;
+			// row=this->getLastNode(this->rNodes[this->rNodesMap[from]],'r');	//	获取该行位置，并得到该行链表的最后一个结点
 		}
 
 		//	判断列索引是否存在
 		index=this->cNodesMap.find(to);
 		if(index==this->cNodesMap.end()){	//	to结点的索引不存在
 			this->cNodesMap[to]=this->cNodes.size();	//	建立列索引
-		}else{	//	from结点的索引存在
-			column=this->getLastNode(this->cNodes[this->cNodesMap[to]],'c');	//	获取该行位置，并得到该行链表的最后一个结点
-		}
-
-		//	将结点插入链表中
-		if(row==NULL){
-			this->rNodes.push_back(head);
-		}else{
-			row->right=head;
-		}
-
-		if(column==NULL){
 			this->cNodes.push_back(head);
-		}else{
-			column->down=head;
-		}
-
-		if(to==15){
-			cout<<"error:"<<"graph build"<<head->from<<endl;
-			cout<<"error:"<<"graph build"<<head->to<<endl;
+		}else{	//	from结点的索引存在
+			head->down=this->cNodes[this->cNodesMap[to]];
+			this->cNodes[this->cNodesMap[to]]=head;
+			// column=this->getLastNode(this->cNodes[this->cNodesMap[to]],'c');	//	获取该行位置，并得到该行链表的最后一个结点
 		}
 	}
 
@@ -139,7 +127,7 @@ public:
 			}
 		}
 		infile.close();
-
+		cout<<1<<endl;
 		// 读取keyword文件
 		infile.open(keywordFileName.data());   // 将文件流对象与文件连接起来 
 		assert(infile.is_open());   // 若失败,则输出错误消息,并终止程序运行
@@ -211,17 +199,20 @@ public:
 				p = quf.front();
 				quf.pop();
 				if(p == to || contains(qub,p)){
-					return distf+distb+1;
+					return distf+distb;
 				}
 				// 获取点p的邻接结点
-				Node *no=this->rNodes[this->rNodesMap[p]];
-				while(no!=NULL){
-					if(visitf.find(no->to)==visitf.end()){	//	结点p未访问
-						visitf[no->to]=true;
-						quf.push(no->to);
+				if(this->rNodesMap.find(p)!=this->rNodesMap.end()){	//	该结点有邻接节点
+					Node *no=this->rNodes[this->rNodesMap[p]];
+					while(no!=NULL){
+						if(visitf.find(no->to)==visitf.end()){	//	结点p未访问
+							visitf[no->to]=true;
+							quf.push(no->to);
+						}
+						no=no->right;
 					}
-					no=no->right;
 				}
+				
 				// 若点p是当层最后一个结点，路径距离+1
 				if(nextFf==p){
 					distf++;
@@ -233,16 +224,18 @@ public:
 				p = qub.front();
 				qub.pop();
 				if(p == from || contains(quf,p)){
-					return distf+distb+1;
+					return distf+distb;
 				}
 				// 获取点p的邻接结点
-				Node *no=this->cNodes[this->cNodesMap[p]];
-				while(no!=NULL){
-					if(visitb.find(no->from)==visitb.end()){	//	结点p未访问
-						visitb[no->from]=true;
-						qub.push(no->from);
+				if(this->cNodesMap.find(p)!=this->cNodesMap.end()){	//	该结点有邻接节点
+					Node *no=this->cNodes[this->cNodesMap[p]];
+					while(no!=NULL){
+						if(visitb.find(no->from)==visitb.end()){	//	结点p未访问
+							visitb[no->from]=true;
+							qub.push(no->from);
+						}
+						no=no->down;
 					}
-					no=no->down;
 				}
 				// 若点p是当层最后一个结点，路径距离+1
 				if(nextFb==p){
@@ -253,5 +246,35 @@ public:
 		}
 		return -1;	// 不可达
 	}
+
+	//	输出十字链表的列
+	void showColumns() {
+		for(map<int,int>::iterator it=this->cNodesMap.begin();it!=cNodesMap.end();it++){
+			cout<<(*it).first<<" "<<getNodeListSize(this->cNodes[(*it).second],'c');
+			Node *p=this->cNodes[(*it).second];
+			while(p!=NULL){
+				cout<<" "<<p->from;
+				p=p->down;
+			}
+			if(it!=this->cNodesMap.end()){
+				cout<<endl;
+			}
+		}
+	}
 	
+	//	输出十字链表的行
+	void showRows() {
+		for(map<int,int>::iterator it=this->rNodesMap.begin();it!=rNodesMap.end();it++){
+			cout<<(*it).first<<" "<<getNodeListSize(this->rNodes[(*it).second],'r');
+			Node *p=this->rNodes[(*it).second];
+			while(p!=NULL){
+				cout<<" "<<p->to;
+				p=p->right;
+			}
+			if(it!=this->rNodesMap.end()){
+				cout<<endl;
+			}
+		}
+	}
+
 };
