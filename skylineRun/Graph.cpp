@@ -8,28 +8,47 @@ private:
 	// 修改图的数据结构
 	map<int, int> rNodesMap;	//	行索引
 	map<int, int> cNodesMap;	//	列索引
+	set<int> keyList;	//	存储关键词序列
 	int edgeNum;	// 边数量
 	int maxNode;
 	Graph(){}
 public:
+	//	单例模式，返回graph对象
 	static Graph& getInstance(){
         static Graph instance;
         return instance;
     }
 	
-	int stringToInt(string s){
-		return stoi(s);
+	//	返回关键词序列
+	vector<int> getKeyList(){
+		vector<int> res(this->keyList.begin(),this->keyList.end());
+		return res;
 	}
 
-	//	插入from结点对应的一组边
-	void insertEdge(int from,vector<string> tos){
+	//	返回关键词序列长度
+	int getKeyListSize(){
+		return this->keyList.size();
+	}
+
+
+	//	插入from结点对应的一组边,如果type值为keyword，则将tos数组存入this->keyList关键词序列中
+	void insertEdge(int from,vector<string> tos,string type){
 		int mapIndex;
 		//	将tos的string类型转化为int
 		vector<int> intTos;
 		intTos.resize(tos.size()-1);
-		for(vector<string>::iterator it=tos.begin();it!=tos.end()-1;it++){
-			intTos.push_back(stoi(*it));
+
+		if(type=="keyword"){
+			for(vector<string>::iterator it=tos.begin();it!=tos.end()-1;it++){
+				intTos.push_back(stoi(*it));
+				this->keyList.insert(stoi(*it));
+			}
+		}else{
+			for(vector<string>::iterator it=tos.begin();it!=tos.end()-1;it++){
+				intTos.push_back(stoi(*it));
+			}
 		}
+		
 		
 		//	插入正向边索引
 		if(this->rNodesMap.find(from)==this->rNodesMap.end()){	//	结点from未在索引中
@@ -41,8 +60,9 @@ public:
 		}
 		
 		//	插入正向边
-		
 		this->rNodes[mapIndex].insert(this->rNodes[mapIndex].end(),intTos.begin(),intTos.end());	//	将tos插入对应的this->rNodes中
+		//	如果type值为keyword，则将tos数组存入this->keyList关键词序列中
+		
 		
 		//	边数增加
 		this->edgeNum+=intTos.size();
@@ -86,7 +106,7 @@ public:
 				this->maxNode=from;
 			}
 			vector<string> tos = Util::split(temp.back(), ",");	// 边的终点集合
-			this->insertEdge(from,tos);
+			this->insertEdge(from,tos,"node");
 		}
 		infile.close();
 		// 读取keyword文件
@@ -102,7 +122,7 @@ public:
 				this->maxNode=from;
 			}
 			vector<string> tos = Util::split(temp.back(), ",");	// 获取关键词
-			this->insertEdge(from,tos);
+			this->insertEdge(from,tos,"keyword");
 		}
 		infile.close();
 	}

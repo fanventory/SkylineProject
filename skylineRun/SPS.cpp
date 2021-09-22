@@ -369,7 +369,7 @@ public:
 		
 		// query if two node reach each other by TL_Label
 		vector<int> res = judgeReachable(dataFile, indexFile, query_list);	// if p is reachable, return 1; else return 0
-		 cout<<12<<endl;	
+		// cout<<12<<endl;	
 
 		// judge p in Skyline can reach all query keyword in q.Ψ
 		vector<int> SkylineUnReachable;
@@ -394,12 +394,12 @@ public:
        
 			ComputeDist(*sIter,query);	// ComputeDist(p, q.ψ);
 		}
-		 cout<<13<<endl;	
+		// cout<<13<<endl;	
 		// P ← Partition(Cand);
 		vector<vector<int>> P = Partition(Cand, query);	
-		 cout<<14<<endl;	
+		// cout<<14<<endl;	
 		this->sortDistMap();
-		 cout<<15<<endl;	
+		// cout<<15<<endl;	
 		for (vector<vector<int>>::iterator it = P.begin(); it < P.end(); ) {	// for each partition Pi∈ P do
 			bool bflag = false;
 			vector<int> pi = (*it);
@@ -444,7 +444,7 @@ public:
 				it++;	// 避免最后一个结点执行P.erase()后，执行it++操作导致报错，所以it++在此处执行
 			}
 		}
-		 cout<<16<<endl;	
+		// cout<<16<<endl;	
 		// ========================================================================================================== //
 		// 方法1：对P中的点先求可达性和距离，再进行两两支配关系比较
 
@@ -694,18 +694,16 @@ public:
 			tmp.push_back(*it);
 			P.push_back(tmp);
 		}
-		 cout<<18<<endl;
 		// ========================================================================================================== //
 		// this->sortDistMap();
 		DominanceCheck(P,t4);	// DominanceCheck(P);
-		 cout<<19<<endl;	
 		for (vector<vector<int>>::iterator it = P.begin(); it < P.end();it++) {	// Add each Pi∈ P to Skyline;
 			for (vector<int>::iterator it_p = (*it).begin(); it_p < (*it).end(); it_p++) {
 				Skyline.push_back(*it_p);
 			}
 		}
 
-		cout<<"t1:"<<t1<<endl<<"t2:"<<t2<<endl<<"t3:"<<t3<<endl<<"t4:"<<t4<<endl;
+		cout<<"t1:"<<t1<<" "<<"t2:"<<t2<<" "<<"t3:"<<t3<<" "<<"t4:"<<t4<<endl;
 		return Skyline;
 	}
 };

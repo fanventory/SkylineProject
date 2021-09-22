@@ -1,19 +1,19 @@
-#include<vector>
-#include <fstream>
-#include <iostream>
+#include <vector>
 #include <string>
-#include <assert.h>
-#include <sstream>
 #include <algorithm>
 #include <map>
 #include <set>
 #include <queue>
+#include <stack>
+#include <fstream>
+#include <iostream>
+#include <assert.h>
+#include <sstream>
 #include <iterator>
 #include <cstdio>
 #include <cstdlib>
-#include <cstring>
 #include <cctype>
-#include <stack>
+#include <numeric>
 using namespace std;
 #pragma once
 
@@ -32,12 +32,12 @@ struct KeyRow{
 };
 
 // 存储图结构
-// struct Node {
-// 	struct  Node *right;
-// 	struct  Node *down;
-// 	int from;
-// 	int to;
-// };
+struct Node {
+	struct  Node *right;
+	struct  Node *down;
+	int from;
+	int to;
+};
 
 // 存储TL_LABEL查询的节点数据结构
 struct queryNode {

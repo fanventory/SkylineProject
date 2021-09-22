@@ -52,15 +52,61 @@ int main(int argc, char **argv) {
 	// *****第一次运行需要执行写入，将index写入硬盘中***** //
 	if(build){
 		graph.write("./data.txt");	// 输出转化后的图（用于TL_LABEL预处理）
-		 cout<<3<<endl;
 		// TL_LABEL预处理
 		char filename[64], resfilename[64];
 		strcpy(filename, "./data.txt");
 		strcpy(resfilename, "../index/p2p_scc");
 		pre_processing(filename,resfilename);
-		 cout<<4<<endl;
 	}
 	// 准备工作结束
+
+	/*******************测试部分***********************/
+	unsigned seed;
+	vector<double> runtimes;
+	//	获取关键词序列
+	vector<int> KL=graph.getKeyList();
+	//	获取关键词序列的长度
+	int KLS=graph.getKeyListSize();
+	//	循环n次
+	for(int i=0;i<10;i++){
+		Leveldb ldb;
+		//	清空query队列
+		query.clear();
+		//	设置随机数种子
+		seed = time(0);
+		srand(seed);
+		cout<<"KLS :"<<KLS<<endl;
+		//	从关键词序列中随机取三个数
+		cout << "关键词：";
+		for(int j=0;j<3;j++){
+			int queryEl=KL[rand() % KLS ];
+			query.push_back(queryEl);
+			cout <<queryEl<<" ";
+		}
+		cout <<endl;
+		
+		vector<KeyRow> queryRes= ldb.SLGet(query,SLFileName);
+		SPS sps;
+		sps.init(queryRes,graph);	// 初始化
+		clock_t startTime,endTime;	// 计时
+		startTime = clock();	//计时开始
+		vector<int> Skyline=sps.SPS_calculate(query,SPFileName);	// 执行sps算法
+		endTime = clock();	//计时结束
+		double runtime=(double)(endTime - startTime) / CLOCKS_PER_SEC;
+		runtimes.push_back(runtime);
+		cout << "The run time is: " << runtime << "s" << endl;
+		cout<<"skyline Size is : "<<Skyline.size();
+		cout<<endl<<"=================================================================================="<<endl;
+	}
+	//	计算平均时间
+	cout<<"The mean time is :"<<accumulate(runtimes.begin(),runtimes.end(),0.0)/runtimes.size()<<endl;
+
+	
+
+	/*******************测试部分***********************/
+	
+	
+	/*
 	Leveldb ldb;
 	vector<KeyRow> queryRes= ldb.SLGet(query,SLFileName);	// 从SLdb中获取关键字对应的倒排索引组
 	 cout<<5<<endl;
@@ -76,5 +122,7 @@ int main(int argc, char **argv) {
   cout<<"skyline is : ";
 	for_each(Skyline.begin(), Skyline.end(), show);	// 显示Skyline结果
    cout<<endl<<endl;
+	*/
+
 	return 0;
 }
