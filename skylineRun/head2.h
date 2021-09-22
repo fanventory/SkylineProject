@@ -32,10 +32,12 @@ struct KeyRow{
 };
 
 // 存储图结构
-struct Node {
-	int node;
-	vector<int> edge;
-};
+// struct Node {
+// 	struct  Node *right;
+// 	struct  Node *down;
+// 	int from;
+// 	int to;
+// };
 
 // 存储TL_LABEL查询的节点数据结构
 struct queryNode {

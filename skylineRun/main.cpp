@@ -48,26 +48,26 @@ int main(int argc, char **argv) {
 	Graph graph=Graph::getInstance();
 	// 将关键字转化为图中的节点
 	graph.transformGraph(edgeFile, keywordFile);
-	// cout<<2<<endl;
+	 cout<<2<<endl;
 	// *****第一次运行需要执行写入，将index写入硬盘中***** //
 	if(build){
 		graph.write("./data.txt");	// 输出转化后的图（用于TL_LABEL预处理）
-		// cout<<3<<endl;
+		 cout<<3<<endl;
 		// TL_LABEL预处理
 		char filename[64], resfilename[64];
 		strcpy(filename, "./data.txt");
 		strcpy(resfilename, "../index/p2p_scc");
 		pre_processing(filename,resfilename);
-		// cout<<4<<endl;
+		 cout<<4<<endl;
 	}
 	// 准备工作结束
 	Leveldb ldb;
 	vector<KeyRow> queryRes= ldb.SLGet(query,SLFileName);	// 从SLdb中获取关键字对应的倒排索引组
-	// cout<<5<<endl;
+	 cout<<5<<endl;
 	SPS sps;
 	// 将倒排序列读入数据结构中
 	sps.init(queryRes,graph);	// 初始化
-	// cout<<6<<endl;
+	 cout<<6<<endl;
 	clock_t startTime,endTime;	// 计时
 	startTime = clock();//计时开始
 	vector<int> Skyline=sps.SPS_calculate(query,SPFileName);	// 执行sps算法
