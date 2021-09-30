@@ -313,6 +313,16 @@ public:
 			sort((*it).second.begin(),(*it).second.end(),Util::comp);
 		}
 	}
+	
+	// 输出该点的距离信息
+	void showNode(int node){
+		vector<keyDist> out=this->distMap[node];
+		cout<<"node: "<<node;
+		for(vector<keyDist>::iterator it=out.begin();it!=out.end();it++){
+			cout<<" = "<<(*it).key<<" => "<<(*it).dist<<",";
+		}
+		cout<<endl;
+	}
 
 	// SPS算法
 	vector<int> SPS_calculate(vector<int> query,string SPFileName) {
@@ -369,7 +379,7 @@ public:
 		
 		// query if two node reach each other by TL_Label
 		vector<int> res = judgeReachable(dataFile, indexFile, query_list);	// if p is reachable, return 1; else return 0
-		// cout<<12<<endl;	
+		 cout<<12<<endl;	
 
 		// judge p in Skyline can reach all query keyword in q.Ψ
 		vector<int> SkylineUnReachable;
@@ -394,12 +404,12 @@ public:
        
 			ComputeDist(*sIter,query);	// ComputeDist(p, q.ψ);
 		}
-		// cout<<13<<endl;	
+		 cout<<13<<endl;	
 		// P ← Partition(Cand);
 		vector<vector<int>> P = Partition(Cand, query);	
-		// cout<<14<<endl;	
+		 cout<<14<<endl;	
 		this->sortDistMap();
-		// cout<<15<<endl;	
+		 cout<<15<<endl;	
 		for (vector<vector<int>>::iterator it = P.begin(); it < P.end(); ) {	// for each partition Pi∈ P do
 			bool bflag = false;
 			vector<int> pi = (*it);
@@ -444,7 +454,7 @@ public:
 				it++;	// 避免最后一个结点执行P.erase()后，执行it++操作导致报错，所以it++在此处执行
 			}
 		}
-		// cout<<16<<endl;	
+		 cout<<16<<endl;	
 		// ========================================================================================================== //
 		// 方法1：对P中的点先求可达性和距离，再进行两两支配关系比较
 
@@ -555,6 +565,7 @@ public:
 		for (vector<vector<int>>::iterator it = P.begin(); it < P.end(); ) {	// for each partition Pi∈ P do
 			bool bflag=false;
 			int keyTmp;
+			cout<<(*it).front()<<endl;
 			for (vector<vector<int>>::iterator it_inner = P.begin(); it_inner < P.end(); it_inner++) {
 				if(strictControl((*it).front(),(*it_inner).front())){	//	该组与其他组之间做严格支配比较
 					it = P.erase(it);	// Pi is pruned and removed;
@@ -629,6 +640,7 @@ public:
 				for (vector<int>::iterator it_inner = groupTmp.begin(); it_inner < groupTmp.end(); it_inner++) {	// for each p ∈ Pido
 					for (vector<int>::iterator wIter = query.begin(); wIter < query.end(); wIter++) {
 						queryNode temp(*it_inner,*wIter);
+					cout<<"node:" << *it_inner<<" == > "<<*wIter<<endl;
 						query_list.push_back(temp);	// query_list用于调用TL_LABEL算法判断可达性
 					}
 				}
@@ -640,9 +652,12 @@ public:
 				vector<int> PUnReachable;
 				int reachTemp=0;
 				for (int i = 0,k = 0; i < res.size(); i++ ) { 
+					cout<<res[i]<<" ";
 					reachTemp += res[i];
 					if (i == (k + 1)*query.size() - 1) {
+						cout<<endl;
 						if (reachTemp != query.size()) {	// unreachable
+							cout<<"delete node:"<<groupTmp[k]<<endl;
 							PUnReachable.push_back(groupTmp[k]);
 						}
 						k++;
@@ -670,7 +685,7 @@ public:
 							break;
 						}
 					}
-					if(!tflag){
+					if(!tflag){ 
 						it_group++;
 					}
 				}
@@ -701,6 +716,10 @@ public:
 			for (vector<int>::iterator it_p = (*it).begin(); it_p < (*it).end(); it_p++) {
 				Skyline.push_back(*it_p);
 			}
+		}
+		
+		for(vector<int>::iterator it=Skyline.begin();it!=Skyline.end();it++){
+			this->showNode(*it);
 		}
 
 		cout<<"t1:"<<t1<<" "<<"t2:"<<t2<<" "<<"t3:"<<t3<<" "<<"t4:"<<t4<<endl;

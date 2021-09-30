@@ -36,7 +36,6 @@ public:
 		int mapIndex;
 		//	将tos的string类型转化为int
 		vector<int> intTos;
-		intTos.resize(tos.size()-1);
 
 		if(type=="keyword"){
 			for(vector<string>::iterator it=tos.begin();it!=tos.end()-1;it++){
