@@ -40,17 +40,22 @@ public:
 		//	将tos的string类型转化为int
 		vector<int> intTos;
 
+		/*
 		if(type=="keyword"){	//	插入关键词
-			for(vector<string>::iterator it=tos.begin();it!=tos.end()-1;it++){
+			for(vector<string>::iterator it=tos.begin();it!=tos.end()-1;it++){	//	tos.end()-1是因为最后一个元素是分隔符造成的空格
 				intTos.push_back(stoi(*it));
-				this->keyList.insert(stoi(*it));
+				
 			}
 		}else{	//	插入链接边
 			for(vector<string>::iterator it=tos.begin();it!=tos.end()-1;it++){
 				intTos.push_back(stoi(*it));
 			}
-		}
-		
+		}*/
+		for(vector<string>::iterator it=tos.begin();it!=tos.end()-1;it++){
+			intTos.push_back(stoi(*it));
+		}	
+		this->keyList.insert(intTos.begin(),intTos.end());	//	生成关键词序列
+
 		//	插入正向边索引
 		if(this->rNodesMap.find(from)==this->rNodesMap.end()){	//	结点from未在索引中
 			mapIndex=this->rNodes.size();

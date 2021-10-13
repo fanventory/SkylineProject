@@ -93,8 +93,11 @@ public:
 		int mapIndex;
 		//	将tos的string类型转化为int
 		vector<int> intTos;
-        transform (tos.begin(), tos.end(),intTos.begin(),[](string n){return stoi(n);});
-		
+        // transform (tos.begin(), tos.end(),intTos.begin(),[](string n){return stoi(n);});
+		for(vector<string>::iterator it=tos.begin();it!=tos.end()-1;it++){
+			intTos.push_back(stoi(*it));
+		}
+    
         //  比较大小
         int maxTo=*max_element(intTos.begin(),intTos.end());    //  获取IntTos中的最大值
         if(from > this->maxNode){
