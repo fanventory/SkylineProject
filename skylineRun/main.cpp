@@ -12,6 +12,7 @@ int main(int argc, char **argv) {
 	string pidCoordFile="/home/zhangzf/program/SPSLGraph/data/DBpediaVB/pidCoordDBpediaVB.txt";
 	string SLFileName="/home/zhangzf/program/SPSLGraph/db/SLdb";
 	string SPFileName="/home/zhangzf/program/SPSLGraph/db/SPdb";
+	string conTableFileName="./conTable.csv";
 	
 	// 测试数据集
 	/*
@@ -43,24 +44,30 @@ int main(int argc, char **argv) {
 		query.push_back(stoi(*it));
 	}
 	*/
-
 	// 准备工作
-	Graph graph=Graph::getInstance();
-	// 将关键字转化为图中的节点
-	graph.transformGraph(edgeFile, keywordFile);
-	 cout<<2<<endl;
-	// *****第一次运行需要执行写入，将index写入硬盘中***** //
 	if(build){
-		graph.write("./data.txt");	// 输出转化后的图（用于TL_LABEL预处理）
+		TL_pre_file tpf;
+		tpf.readGraph(edgeFile, keywordFile,conTableFileName);	//	读取图，并对强连通分量进行处理
+		tpf.write("./data.txt");	// 输出转化后的图（用于TL_LABEL预处理）
 		// TL_LABEL预处理
 		char filename[64], resfilename[64];
 		strcpy(filename, "./data.txt");
 		strcpy(resfilename, "../index/p2p_scc");
 		pre_processing(filename,resfilename);
 	}
+	cout<<1<<endl;
+	//	读取图
+	Graph graph=Graph::getInstance();
+	// 将关键字转化为图中的节点
+	graph.readGraph(edgeFile, keywordFile,conTableFileName);
+	 cout<<2<<endl;
+	// *****第一次运行需要执行写入，将index写入硬盘中***** //
+
 	// 准备工作结束
 
 	/*******************测试部分***********************/
+	/*******************随机获取三个关键词，求skyline***********************/
+		/*
 	unsigned seed;
 	vector<double> runtimes;
 	//	获取关键词序列
@@ -87,7 +94,7 @@ int main(int argc, char **argv) {
 		
 		vector<KeyRow> queryRes= ldb.SLGet(query,SLFileName);
 		SPS sps;
-		sps.init(queryRes,graph);	// 初始化
+		sps.init(queryRes,&graph);	// 初始化
 		clock_t startTime,endTime;	// 计时
 		startTime = clock();	//计时开始
 		vector<int> Skyline=sps.SPS_calculate(query,SPFileName);	// 执行sps算法
@@ -100,19 +107,18 @@ int main(int argc, char **argv) {
 	}
 	//	计算平均时间
 	cout<<"The mean time is :"<<accumulate(runtimes.begin(),runtimes.end(),0.0)/runtimes.size()<<endl;
-
+	*/
 	
-
 	/*******************测试部分***********************/
 	
 	
-	/*
+
 	Leveldb ldb;
 	vector<KeyRow> queryRes= ldb.SLGet(query,SLFileName);	// 从SLdb中获取关键字对应的倒排索引组
 	 cout<<5<<endl;
 	SPS sps;
 	// 将倒排序列读入数据结构中
-	sps.init(queryRes,graph);	// 初始化
+	sps.init(queryRes,&graph);	// 初始化
 	 cout<<6<<endl;
 	clock_t startTime,endTime;	// 计时
 	startTime = clock();//计时开始
@@ -122,7 +128,7 @@ int main(int argc, char **argv) {
   cout<<"skyline is : ";
 	for_each(Skyline.begin(), Skyline.end(), show);	// 显示Skyline结果
    cout<<endl<<endl;
-	*/
+
 
 	return 0;
 }

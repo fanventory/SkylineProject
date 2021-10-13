@@ -11,8 +11,8 @@ private:
  	Graph *graph;
 public:
 	// 根据读取到的文本行，构造倒排索引数据结构
-	void init(vector<KeyRow> row,Graph &graph) {
-    	this->graph=&graph;
+	void init(vector<KeyRow> row,Graph *graph) {
+    	this->graph=graph;
 		for (vector<KeyRow>::iterator it = row.begin(); it < row.end(); it++) {
 			this->keyRows.push_back(*it);
 			this->index[(*it).key] = this->keyRows.size() - 1;

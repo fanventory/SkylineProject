@@ -1,3 +1,8 @@
+## 处理强连通分量
+进入Digraph目录：cd Digraph<br>
+编译命令：g++ main.cpp -o kosa
+执行命令：./kosa
+
 ## 生成倒排索引组
 进入pre_process目录：cd pre_process<br>
 编译命令：g++ main.cpp libleveldb.a -lpthread -I ../../leveldb/include  -o pre_process<br>
