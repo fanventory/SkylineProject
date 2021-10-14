@@ -370,7 +370,8 @@ public:
 			// if p is not materialized, push in query_list, which use to test if p is reachable later
 			if(!this->materialized(*sIter,query)){	// if p is not materialized
 				for (vector<int>::iterator wIter = query.begin(); wIter < query.end(); wIter++) {
-					queryNode temp(*sIter,*wIter);
+					int p=this->graph->getStronglyConnectNode(*sIter);
+					queryNode temp(p,*wIter);
 					query_list.push_back(temp);	// query_list用于调用TL_LABEL算法判断可达性
 				}
 				SkylineUnMaterialized.push_back(*sIter);
@@ -665,7 +666,7 @@ public:
 					}
 				}
 				// delete the node p which cannot reach q.ψ
-				for (vector<int>::iterator it_inner = groupTmp.begin(); it_inner < groupTmp.end(); it_inner++) {	// for each p ∈ Pido
+				for (vector<int>::iterator it_inner = groupTmp.begin(); it_inner < groupTmp.end(); ) {	// for each p ∈ Pido
 					vector<int>::iterator itFind = find(PUnReachable.begin(), PUnReachable.end(), *it_inner);
 					if(itFind!=PUnReachable.end()){	// P UnReachable
 						it_inner = groupTmp.erase(it_inner);	// Pi is pruned and removed;

@@ -33,6 +33,15 @@ public:
 	bool stronglyConnect(int v,int w){
 		return this->conTable[v]==this->conTable[w];
 	}
+	
+	//	判断点p是否在强连通分量中，如果是返回对应的虚拟顶点p*，否则返回原来的点
+	int getStronglyConnectNode(int p){
+		if(this->conTable.find(p)!=this->conTable.end()){
+			return this->conTable[p];
+		}else{
+			return p;
+		}
+	}
 
 	//	插入from结点对应的一组边,如果type值为keyword，则将tos数组存入this->keyList关键词序列中
 	void insertEdge(int from,vector<string> tos,string type){
