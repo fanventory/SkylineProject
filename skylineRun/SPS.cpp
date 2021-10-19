@@ -370,8 +370,8 @@ public:
 			// if p is not materialized, push in query_list, which use to test if p is reachable later
 			if(!this->materialized(*sIter,query)){	// if p is not materialized
 				for (vector<int>::iterator wIter = query.begin(); wIter < query.end(); wIter++) {
-					int p=this->graph->getStronglyConnectNode(*sIter);
-					queryNode temp(p,*wIter);
+					int pt=this->graph->getStronglyConnectNode(*sIter);
+					queryNode temp(pt,*wIter);
 					query_list.push_back(temp);	// query_list用于调用TL_LABEL算法判断可达性
 				}
 				SkylineUnMaterialized.push_back(*sIter);
@@ -585,7 +585,8 @@ public:
 			}else if(unkownMaterializedNum((*it).front(),query,keyTmp)==1){	// 只有一个可达性未知的距离，求该距离的最小值即可
 				query_list.clear();
 				for (vector<int>::iterator it_inner = (*it).begin(); it_inner < (*it).end(); it_inner++) {	// for each p ∈ Pido
-					query_list.push_back(queryNode(*it_inner,keyTmp));
+					int pt=this->graph->getStronglyConnectNode(*it_inner);
+					query_list.push_back(queryNode(pt,keyTmp));
 				}
 				
 				// query if two node reach each other by TL_Label
@@ -640,8 +641,9 @@ public:
 				query_list.clear();
 				for (vector<int>::iterator it_inner = groupTmp.begin(); it_inner < groupTmp.end(); it_inner++) {	// for each p ∈ Pido
 					for (vector<int>::iterator wIter = query.begin(); wIter < query.end(); wIter++) {
-						queryNode temp(*it_inner,*wIter);
-					cout<<"node:" << *it_inner<<" == > "<<*wIter<<endl;
+						int pt=this->graph->getStronglyConnectNode(*it_inner);
+						queryNode temp(pt,*wIter);
+						cout<<"node:" << *it_inner<<" == > "<<*wIter<<endl;
 						query_list.push_back(temp);	// query_list用于调用TL_LABEL算法判断可达性
 					}
 				}
@@ -676,8 +678,8 @@ public:
 					}
 				}	
 				// 计算完距离后，两两之间支配比较
-				bool tflag=false;
 				for (vector<int>::iterator it_group = groupTmp.begin(); it_group < groupTmp.end(); ) {
+					bool tflag=false;
 					for (vector<int>::iterator it_group_inner = it_group+1; it_group_inner < groupTmp.end(); it_group_inner++) {
 						if(control(*it_group_inner,*it_group)){
 							it_group = groupTmp.erase(it_group);	// Pi is pruned and removed;

@@ -156,7 +156,7 @@ public:
 	*/
 
 	// 判断点p是否在队列中
-	//	############################################可优化#############################################
+	/*
 	bool contains(queue<int> qu,int p){
 		queue<int> tmp(qu);
 		while(!tmp.empty()){
@@ -167,64 +167,62 @@ public:
 		}
 		return false;
 	}
+	*/
 	
 	// 计算图中两结点的最短路径,采用bidirational Search算法
 	int minDist(int from,int to) {
 		map<int,bool> visitf;	//	判断结点是否已经遍历过
 		map<int,bool> visitb;
 		queue<int> quf,qub;
-		int distf = 0 ,distb = 0 , index = 0, p = 0, nextFf = from, nextFb=to;
+		int dist=0 , p = 0;
 		quf.push(from);
 		qub.push(to);
 		visitf[from]=true;
 		visitb[to]=true;
 
 		while (!quf.empty() && !qub.empty()) {
-			if(!quf.empty()){
+			int qufSize=quf.size();
+			int qubSize=qub.size();
+			dist++;
+			for(int i=0;i<qufSize;i++){
 				p = quf.front();
 				quf.pop();
-				if(p == to || contains(qub,p)){
-					return distf+distb;
-				}
 				// 获取点p的邻接结点
 				if(this->rNodesMap.find(p)!=this->rNodesMap.end()){	//	该结点有邻接节点
 					for(vector<int>::iterator it=this->rNodes[this->rNodesMap[p]].begin();it!=this->rNodes[this->rNodesMap[p]].end();it++){
-						if(visitf.find(*it)==visitf.end()){	//	结点p未访问
+						if(visitf.find(*it)!=visitf.end()){	//	结点p已访问
+							continue;
+						}else if(visitb.find(*it)!=visitb.end()){//	重复结点
+							return dist;
+						}else{
+							path1[*it]=p;
 							visitf[*it]=true;
 							quf.push(*it);
 						}
 					}
 				}
-				// 若点p是当层最后一个结点，路径距离+1
-				if(nextFf==p){
-					distf++;
-					nextFf=quf.back();
-				}
 			}
 			
-		
-
-			if(!qub.empty()){
+			dist++;
+			for(int i=0;i<qubSize;i++){
 				p = qub.front();
 				qub.pop();
-				if(p == from || contains(quf,p)){
-					return distf+distb;
-				}
 				// 获取点p的邻接结点
 				if(this->cNodesMap.find(p)!=this->cNodesMap.end()){	//	该结点有邻接节点
 					for(vector<int>::iterator it=this->cNodes[this->cNodesMap[p]].begin();it!=this->cNodes[this->cNodesMap[p]].end();it++){
-						if(visitb.find(*it)==visitb.end()){	//	结点p未访问
+						if(visitb.find(*it)!=visitb.end()){	//	结点p已访问
+							continue;
+						}else if(visitf.find(*it)!=visitf.end()){//	重复结点
+							return dist;
+						}else{
+							path2[*it]=p;
 							visitb[*it]=true;
 							qub.push(*it);
 						}
 					}
 				}
-				// 若点p是当层最后一个结点，路径距离+1
-				if(nextFb==p){
-					distb++;
-					nextFb=qub.back();
-				}
 			}
+			
 		}
 		return -1;	// 不可达
 	}
