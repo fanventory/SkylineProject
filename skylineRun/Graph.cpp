@@ -60,10 +60,12 @@ public:
 				intTos.push_back(stoi(*it));
 			}
 		}*/
-		for(vector<string>::iterator it=tos.begin();it!=tos.end()-1;it++){
+		for(vector<string>::iterator it=tos.begin();it!=tos.end()-1;it++){	//	将关键词转化为int型数据
 			intTos.push_back(stoi(*it));
 		}	
-		this->keyList.insert(intTos.begin(),intTos.end());	//	生成关键词序列
+		if(type=='keyword'){	//	如果tos队列为关键词，则插入关键词列表中
+			this->keyList.insert(intTos.begin(),intTos.end());	//	生成关键词序列
+		}
 
 		//	插入正向边索引
 		if(this->rNodesMap.find(from)==this->rNodesMap.end()){	//	结点from未在索引中
