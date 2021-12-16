@@ -1,9 +1,9 @@
 ## 安装levelDB
-git clone https://github.com/google/leveldb <br>
-cd leveldb <br>
-mkdir -p build && cd build <br>
-cmake -DCMAKE_BUILD_TYPE=Release .. && cmake --build . <br>
-make install <br>
+1. git clone https://github.com/google/leveldb <br>
+2. cd leveldb <br>
+3. mkdir -p build && cd build <br>
+4. cmake -DCMAKE_BUILD_TYPE=Release .. && cmake --build . <br>
+5. make install <br>
 Note:如果遇到报错The source directory %% /home/xie/cpp/leveldb/third_party/googletest %% does not contain a CMakeLists.txt file. <br>
 cd third_party <br>
 git clone https://github.com/google/googletest.git <br>
