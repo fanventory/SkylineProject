@@ -1,3 +1,17 @@
+## 安装levelDB
+git clone https://github.com/google/leveldb <br>
+cd leveldb <br>
+mkdir -p build && cd build <br>
+cmake -DCMAKE_BUILD_TYPE=Release .. && cmake --build . <br>
+make install <br>
+Note:如果遇到报错The source directory %% /home/xie/cpp/leveldb/third_party/googletest %% does not contain a CMakeLists.txt file. <br>
+cd third_party <br>
+git clone https://github.com/google/googletest.git <br>
+git clone https://github.com/google/benchmark.git <br>
+sudo apt install sqlite3 <br>
+cd .. <br>
+cmake -DCMAKE_BUILD_TYPE=Release .. && cmake --build . <br>
+
 ## 处理强连通分量
 进入Digraph目录：cd Digraph<br>
 编译命令：g++ main.cpp -o kosa
